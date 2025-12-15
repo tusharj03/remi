@@ -38,9 +38,9 @@ export const ChordLibrary = ({ onClose }) => {
                         </div>
 
                         {/* Diagram Container */}
-                        <div className="flex-1 min-h-[200px] relative pointer-events-none mb-4">
+                        <div className="flex-1 min-h-[180px] relative pointer-events-none mb-4">
                             <FretboardDiagram
-                                totalFrets={5} // Compact view
+                                totalFrets={5} // Revert to 5 per user request
                                 variant="compact"
                                 highlightNotes={chord.fingers.map(f => ({
                                     string: f.string,

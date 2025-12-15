@@ -124,7 +124,7 @@ export const FretboardDiagram = ({
                 </div>
 
                 {/* Strings and Notes Layer */}
-                <div className="absolute inset-0 flex flex-col justify-between py-4 pointer-events-none">
+                <div className={`absolute inset-0 flex flex-col justify-between pointer-events-none ${variant === 'compact' ? 'py-2' : 'py-4'}`}>
                     {stringsToRender.map((s, stringIdx) => {
                         // Determine if this string matches the played Audio String
                         // AudioIdx 0=Low .. 5=High.
