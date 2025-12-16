@@ -58,7 +58,7 @@ export const AuthOverlay = ({ onClose, onAuthSuccess }) => {
                 {/* Header */}
                 <div className="text-center mb-8">
                     <div className="w-20 h-20 bg-slate-800 rounded-2xl mx-auto mb-4 flex items-center justify-center overflow-hidden border border-slate-700 shadow-lg">
-                        <img src="/logo.png" alt="Remi" className="w-full h-full object-cover" />
+                        <img src="/icon-white.png" alt="Remi" className="w-full h-full object-contain p-2" />
                     </div>
                     <h2 className="text-3xl font-bold text-white mb-2">
                         {isLogin ? 'Welcome Back' : 'Join Remi'}

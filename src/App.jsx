@@ -19,10 +19,12 @@ const LandingPage = ({ onStart, loading }) => (
             <div className="mb-12 relative group cursor-default">
                 <div className="absolute -inset-4 bg-indigo-500/20 blur-xl rounded-full animate-pulse group-hover:bg-indigo-500/30 transition-all"></div>
                 <div className="w-32 h-32 bg-slate-900 rounded-[2rem] flex items-center justify-center shadow-2xl transform rotate-6 border border-white/10 group-hover:rotate-12 transition-transform duration-500 overflow-hidden">
-                    <img src="/logo.png" alt="Remi Logo" className="w-full h-full object-cover" />
+                    <img src="/icon-white.png" alt="Remi Logo" className="w-full h-full object-contain p-4 bg-slate-900" />
                 </div>
             </div>
-            <h1 className="text-7xl font-black text-white mb-6 tracking-tight drop-shadow-2xl">Remi</h1>
+            <div className="mb-6 flex justify-center">
+                <img src="/logo-text.png" alt="Remi" className="h-40 object-contain drop-shadow-2xl brightness-0 invert" />
+            </div>
             <p className="text-slate-400 text-xl mb-12 max-w-md leading-relaxed font-light">
                 The AI Guitar Tutor that <span className="text-indigo-400 font-bold">listens</span> and <span className="text-purple-400 font-bold">watches</span> you play.
             </p>
