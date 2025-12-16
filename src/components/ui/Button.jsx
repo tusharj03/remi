@@ -16,6 +16,7 @@ const Button = forwardRef(({ className, variant = "primary", size = "default", i
         default: "h-12 px-6 py-2",
         sm: "h-9 px-3 text-sm",
         lg: "h-14 px-8 text-lg",
+        xl: "h-16 px-8 text-xl",
         icon: "h-10 w-10 flex items-center justify-center p-0"
     }
 

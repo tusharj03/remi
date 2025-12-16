@@ -97,7 +97,7 @@ export const FretboardDiagram = ({
                     <div className="absolute inset-x-0 -top-6 flex justify-between text-xs text-slate-500 font-mono px-[2%]">
                         {[...Array(numFrets + 1)].map((_, i) => (
                             <span key={i} style={{ width: `${100 / numFrets}%`, textAlign: 'center' }}>
-                                {i === 0 ? 'Nut' : i}
+                                {i + 1}
                             </span>
                         ))}
                     </div>

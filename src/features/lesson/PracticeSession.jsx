@@ -74,7 +74,7 @@ export const PracticeSession = ({ lesson, onFinish }) => {
 
     // Streak Logic
     const [streak, setStreak] = useState(0);
-    const REQUIRED_STREAK = 3;
+    const REQUIRED_STREAK = 1; // [CHANGED] Reduced from 3 for better flow
 
     // History buffers
     const historyRef = useRef({ notes: [], volumes: [], chromas: [], strings: [] });

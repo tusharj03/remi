@@ -18,8 +18,8 @@ const LandingPage = ({ onStart, loading }) => (
         <div className="relative z-10 flex flex-col items-center justify-center flex-1 p-8 text-center animate-in fade-in duration-700">
             <div className="mb-12 relative group cursor-default">
                 <div className="absolute -inset-4 bg-indigo-500/20 blur-xl rounded-full animate-pulse group-hover:bg-indigo-500/30 transition-all"></div>
-                <div className="w-32 h-32 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[2rem] flex items-center justify-center shadow-2xl transform rotate-6 border border-white/10 group-hover:rotate-12 transition-transform duration-500">
-                    <Music className="text-white w-16 h-16 drop-shadow-md" />
+                <div className="w-32 h-32 bg-slate-900 rounded-[2rem] flex items-center justify-center shadow-2xl transform rotate-6 border border-white/10 group-hover:rotate-12 transition-transform duration-500 overflow-hidden">
+                    <img src="/logo.png" alt="Remi Logo" className="w-full h-full object-cover" />
                 </div>
             </div>
             <h1 className="text-7xl font-black text-white mb-6 tracking-tight drop-shadow-2xl">Remi</h1>
@@ -121,18 +121,31 @@ function App() {
     };
 
     const handleLessonFinish = async (xpEarned, action = 'menu') => {
+        console.log("handleLessonFinish called:", { xpEarned, action, selectedLesson: selectedLesson?.id });
+
         if (xpEarned > 0 && user && selectedLesson) {
-            const newProgress = await updateUserProgress(user.uid, progress, selectedLesson.id, xpEarned);
-            setProgress(newProgress);
+            try {
+                const newProgress = await updateUserProgress(user.uid, progress, selectedLesson.id, xpEarned);
+                setProgress(newProgress);
+            } catch (err) {
+                console.error("Failed to update progress:", err);
+            }
         }
 
         if (action === 'next') {
             const currentIndex = LESSONS.findIndex(l => l.id === selectedLesson.id);
+            console.log("Current lesson index:", currentIndex, "Total lessons:", LESSONS.length);
+
             if (currentIndex >= 0 && currentIndex < LESSONS.length - 1) {
                 const nextLesson = LESSONS[currentIndex + 1];
+                console.log("Advancing to next lesson:", nextLesson.id);
+                // Important: We must clear the current lesson first if we want to force a re-mount or
+                // ensure the key changes. But React key on PracticeSession should handle it.
+                // Let's verify if setView needs a toggle or if just changing selectedLesson is enough.
                 setSelectedLesson(nextLesson);
                 setView('practice');
             } else {
+                console.log("No next lesson found or at end of curriculum.");
                 setSelectedLesson(null);
                 setView('dashboard');
             }
