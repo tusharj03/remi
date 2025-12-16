@@ -2,15 +2,13 @@ export const analyzeWithRork = async (base64Image, lesson) => {
     const isPosture = lesson.type === 'posture';
 
     // Prompt Engineering
-    const role = isPosture
-        ? "You are Remi, a supportive guitar coach."
-        : "You are Remi, a strict guitar examiner.";
+    const role = "You are Remi, a supportive guitar coach.";
 
     const criteria = isPosture
         ? "Check hand shape. Thumb should be behind the neck. Fingers should be arched. If mostly correct, MARK SUCCESS."
         : (lesson.chordData
-            ? `Target Chord: ${lesson.chordData.name}. Required Fingers: ${lesson.chordData.fingers.map(f => `String ${f.string} Fret ${f.fret}`).join(', ')}. Verify ALL fingers are placed correctly. if clearly wrong, FAIL.`
-            : `Check finger placement for ${lesson.title}. Are they on the correct strings? If clearly wrong, FAIL. If plausible, PASS.`);
+            ? `Target Chord: ${lesson.chordData.name}. Required Fingers: ${lesson.chordData.fingers.map(f => `String ${f.string} Fret ${f.fret}`).join(', ')}. Check if fingers are approximately on the correct strings/frets. If it looks plausible or close, MARK SUCCESS. Only fail if clearly wrong.`
+            : `Check finger placement for ${lesson.title}. Are they on the correct strings? If close or plausible, PASS.`);
 
     const systemPrompt = `${role} TASK: Verify student technique for lesson: "${lesson.title}". ${criteria}. Respond STRICTLY JSON: { "success": boolean, "confidence": number, "feedback": "string" }`;
 
