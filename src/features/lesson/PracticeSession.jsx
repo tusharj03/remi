@@ -463,6 +463,7 @@ export const PracticeSession = ({ lesson, onFinish }) => {
     // Listen Phase
     const handleStartAnalysis = () => {
         setFeedback(null);
+        setCurrentStep(0);
         historyRef.current = { notes: [], volumes: [], chromas: [], strings: [] };
 
         setPhase('countdown');
