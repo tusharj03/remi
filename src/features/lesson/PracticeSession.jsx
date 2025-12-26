@@ -3,7 +3,7 @@ import { Loader, CheckCircle, AlertTriangle, Zap, Settings, Info, Play, Pause, X
 import { audioEngine } from '@/services/audioEngine';
 import { analyzeWithRork } from '@/services/visionService';
 import { initHandTracker } from '@/services/handTracker';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import remiSpeaking from '@/assets/remi/speaking.png';
 import remiThinking from '@/assets/remi/thinking.png';
 import remiHappy from '@/assets/remi/happy.png';

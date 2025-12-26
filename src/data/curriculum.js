@@ -21,8 +21,8 @@ export const LESSONS = [
         xp: 30,
         type: 'posture',
         ghost: 'default',
-        briefing: "Sit on the edge of your chair. Keep the guitar neck angled up (45 degrees).",
-        prompts: ["Neck angled up.", "Back straight."]
+        briefing: "Sit on the edge of your chair. Hold the guitar comfortably.",
+        prompts: ["Back straight.", "Shoulders relaxed."]
     },
     {
         id: 'tech_thumb',
@@ -33,8 +33,8 @@ export const LESSONS = [
         xp: 50,
         type: 'posture',
         ghost: 'claw',
-        briefing: "Good technique prevents pain. Keep your thumb behind the neck, like a claw.",
-        prompts: ["Thumb behind the neck.", "Fingers arched."],
+        briefing: "Curve your fingers. Use your thumb for support (it's okay if it's hidden behind the neck).",
+        prompts: ["Fingers curved.", "Knuckles raised."],
     },
 
     // --- MODULE 1: TUNING ---

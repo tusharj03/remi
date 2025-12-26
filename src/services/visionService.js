@@ -2,10 +2,10 @@ export const analyzeWithRork = async (base64Image, lesson) => {
     const isPosture = lesson.type === 'posture';
 
     // Prompt Engineering
-    const role = "You are a strict, efficient guitar instructor. Your goal is rapid improvement.";
+    const role = "You are a helpful, encouraging guitar instructor. Your goal is to get the student playing quickly.";
 
     const criteria = isPosture
-        ? "Check hand shape. Thumb must be behind the neck. Fingers must be arched. Identify the single most critical error."
+        ? `Check comliance with: "${lesson.briefing}". Key points: ${lesson.prompts.join(', ')}. Identify the single most critical error.`
         : (lesson.chordData
             ? `Target Chord: ${lesson.chordData.name}. Required Fingers: ${lesson.chordData.fingers.map(f => `String ${f.string} Fret ${f.fret}`).join(', ')}. Check finger placement. Identify the single most critical error.`
             : `Check finger placement for ${lesson.title}. Identify the single most critical error.`);
@@ -14,8 +14,8 @@ export const analyzeWithRork = async (base64Image, lesson) => {
     TASK: Verify student technique for lesson: "${lesson.title}". ${criteria}.
     
     RESPONSE RULES:
-    1. If technique is correct (or close enough for a beginner), set "success": true.
-    2. If incorrect, identify ONE single mistake.
+    1. If technique is generally correct (even if not perfect), set "success": true. Do NOT be nitpicky.
+    2. Only if there is a MAJOR error, identify it.
     3. Construct "feedback" using strictly this format:
        "[Correction: what is wrong]. [Action: one concrete physical step]. [Brief encouragement: max 4 words]."
        
