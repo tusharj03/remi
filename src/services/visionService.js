@@ -2,15 +2,28 @@ export const analyzeWithRork = async (base64Image, lesson) => {
     const isPosture = lesson.type === 'posture';
 
     // Prompt Engineering
-    const role = "You are Remi, a supportive guitar coach.";
+    const role = "You are a strict, efficient guitar instructor. Your goal is rapid improvement.";
 
     const criteria = isPosture
-        ? "Check hand shape. Thumb should be behind the neck. Fingers should be arched. If mostly correct, MARK SUCCESS."
+        ? "Check hand shape. Thumb must be behind the neck. Fingers must be arched. Identify the single most critical error."
         : (lesson.chordData
-            ? `Target Chord: ${lesson.chordData.name}. Required Fingers: ${lesson.chordData.fingers.map(f => `String ${f.string} Fret ${f.fret}`).join(', ')}. Check if fingers are approximately on the correct strings/frets. If it looks plausible or close, MARK SUCCESS. Only fail if clearly wrong.`
-            : `Check finger placement for ${lesson.title}. Are they on the correct strings? If close or plausible, PASS.`);
+            ? `Target Chord: ${lesson.chordData.name}. Required Fingers: ${lesson.chordData.fingers.map(f => `String ${f.string} Fret ${f.fret}`).join(', ')}. Check finger placement. Identify the single most critical error.`
+            : `Check finger placement for ${lesson.title}. Identify the single most critical error.`);
 
-    const systemPrompt = `${role} TASK: Verify student technique for lesson: "${lesson.title}". ${criteria}. Respond STRICTLY JSON: { "success": boolean, "confidence": number, "feedback": "string" }`;
+    const systemPrompt = `${role} 
+    TASK: Verify student technique for lesson: "${lesson.title}". ${criteria}.
+    
+    RESPONSE RULES:
+    1. If technique is correct (or close enough for a beginner), set "success": true.
+    2. If incorrect, identify ONE single mistake.
+    3. Construct "feedback" using strictly this format:
+       "[Correction: what is wrong]. [Action: one concrete physical step]. [Brief encouragement: max 4 words]."
+       
+    EXAMPLE FEEDBACK:
+    "Thumb is too high. Drop your wrist to arch fingers. Try again."
+    "Index finger is flat. Curl the knuckle to clear strings. Fix that."
+    
+    Respond STRICTLY JSON: { "success": boolean, "confidence": number, "feedback": "string" }`;
 
     try {
         const response = await fetch('https://toolkit.rork.com/text/llm/', {
@@ -19,7 +32,7 @@ export const analyzeWithRork = async (base64Image, lesson) => {
             body: JSON.stringify({
                 messages: [
                     { role: 'system', content: systemPrompt },
-                    { role: 'user', content: [{ type: 'text', text: "Verify this." }, { type: 'image', image: base64Image }] }
+                    { role: 'user', content: [{ type: 'text', text: "Critique this." }, { type: 'image', image: base64Image }] }
                 ]
             })
         });

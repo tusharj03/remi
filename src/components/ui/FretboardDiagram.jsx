@@ -1,4 +1,5 @@
 import React from 'react';
+import { Hand } from 'lucide-react';
 
 // --- Constants ---
 const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -59,16 +60,6 @@ export const FretboardDiagram = ({
     // Number of frets to display
     const numFrets = totalFrets;
 
-    // Array representing the strings for rendering (0=High E, 5=Low E)
-    // Wait, let's verify GUITAR_STRINGS index mapping.
-    // audioEngine::GUITAR_STRINGS[0] is Low E.
-    // FretboardDiagram::Strings[5] is Low E if we start 0=High.
-    // So StringIdx from AudioEngine (0=Low E) needs conversion if Fretboard uses 0=High E.
-    // Here: stringsToRender = [0, 1, 2, 3, 4, 5]. Names: e, B, G... (High to Low).
-    // So 0 is High E.
-    // AudioEngine 0 is Low E.
-    // Conversion: FretboardIdx = 5 - AudioIdx.
-
     const stringsToRender = [0, 1, 2, 3, 4, 5];
 
     // [NEW] Normalized Assignments
@@ -83,8 +74,42 @@ export const FretboardDiagram = ({
 
     const getIndex = (sNum) => sNum - 1;
 
+    // Detect if we have a mismatch to draw the arrow
+    let mismatchDetail = null;
+    if (playedStringIdx !== null && playedFret !== null && markers.length > 0) {
+        // Find if played note matches any target
+        // Note: markers use 1-based string index (1=High E, 6=Low E)
+        // playedStringIdx uses 0=High, 5=Low (from component logic below? Wait, let's normalize)
+
+        // Let's assume input playedStringIdx is 0 (High E) to 5 (Low E), SAME as stringsToRender map below.
+        // Marker.string is 1-based.
+
+        const playedString0Based = playedStringIdx; // 5 = Low E
+        const playedString1Based = playedStringIdx + 1; // 6 = Low E
+
+        const match = markers.find(m => m.string === playedString1Based && m.fret === playedFret);
+
+        if (!match) {
+            // MISMATCH!
+            // We want to point from Played -> Target.
+            // Assumption: Single Note target for now (take first marker)
+            const target = markers[0];
+
+            // Calculate relative coordinates for SVG arrow
+            // X: Fret position. Fret 0 is 0%. Fret 12 is 100%.
+            // Y: String position. String 0 (High E) is Top. String 5 (Low E) is Bottom.
+
+            const pFret = playedFret;
+            const tFret = target.fret;
+            const pStr = playedStringIdx; // 0-5
+            const tStr = target.string - 1; // 0-5
+
+            mismatchDetail = { pFret, pStr, tFret, tStr };
+        }
+    }
+
     const containerClass = variant === 'compact'
-        ? "w-full max-w-4xl mx-auto select-none pl-6" // decreased padding, no border/shadow by default (handled by consumer)
+        ? "w-full max-w-4xl mx-auto select-none pl-6"
         : "w-full max-w-4xl mx-auto bg-slate-900 border border-slate-700 rounded-xl p-8 shadow-2xl relative select-none";
 
     return (
@@ -123,14 +148,17 @@ export const FretboardDiagram = ({
                     ))}
                 </div>
 
+                {/* ARROW OVERLAY REMOVED */}
+
+
                 {/* Strings and Notes Layer */}
                 <div className={`absolute inset-0 flex flex-col justify-between pointer-events-none ${variant === 'compact' ? 'py-2' : 'py-4'}`}>
                     {stringsToRender.map((s, stringIdx) => {
                         // Determine if this string matches the played Audio String
-                        // AudioIdx 0=Low .. 5=High.
-                        // StringIdx 0=High .. 5=Low.
-                        // Match check:
-                        const isPlayedString = playedStringIdx !== null && (5 - playedStringIdx) === stringIdx;
+                        // stringIdx here is 0..5 (High..Low) (Wait, map says s is 0..5)
+                        // playedStringIdx passed is 0..High, 5..Low (assumed from PracticeSession)
+
+                        const isPlayedString = playedStringIdx !== null && playedStringIdx === s;
 
                         return (
                             <div key={s} className="relative w-full h-px group">
@@ -155,13 +183,13 @@ export const FretboardDiagram = ({
                                 {[...Array(numFrets + 1)].map((_, f) => {
                                     const activeMarkers = markers.filter(m => getIndex(m.string) === stringIdx && m.fret === f);
                                     const isTargetFret = activeMarkers.length > 0;
-                                    const currentNoteName = getNoteName(s, f);
+
+                                    // Error Logic: It is this note IF it's the played string AND played Fret
+                                    // AND it is NOT a target fret.
+                                    const isErrorNote = isPlayedString && playedFret === f && !isTargetFret;
+                                    const isCorrectNote = isPlayedString && playedFret === f && isTargetFret;
 
                                     // Position Logic:
-                                    // Nut is 0. Frets are 1..12.
-                                    // We need to center the note within the fret space.
-                                    // Nut is special (left-most line).
-                                    // Fret 1 is center of first division.
                                     const percentagePerFret = 100 / numFrets;
                                     const leftPos = f === 0
                                         ? '0%' // On the Nut
@@ -173,25 +201,36 @@ export const FretboardDiagram = ({
                                             className="absolute top-1/2 -translate-y-1/2 flex items-center justify-center transition-all duration-300"
                                             style={{ left: leftPos, width: 0, height: 0 }}
                                         >
-                                            {/* Played Note Feedback (Blue) */}
-                                            {isPlayedString && playedFret === f && (
-                                                <div className="absolute w-6 h-6 rounded-full bg-indigo-500 border border-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.8)] z-30 animate-pulse pointer-events-none">
+                                            {/* WRONG / PLAYED NOTE (Blue/Purple) */}
+                                            {isErrorNote && (
+                                                <div className="absolute w-8 h-8 rounded-full bg-indigo-500 border-2 border-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.6)] z-30 animate-pulse pointer-events-none flex items-center justify-center">
+                                                    {/* No text, just a dot for "here is where you are" */}
                                                 </div>
+                                            )}
+
+                                            {/* CORRECTLY PLAYED (Blue/Green overlay) */}
+                                            {isCorrectNote && (
+                                                <div className="absolute w-8 h-8 rounded-full bg-indigo-500 border border-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.8)] z-30 animate-pulse pointer-events-none"></div>
                                             )}
 
                                             {/* Target Indicator (Green) */}
                                             {isTargetFret && (
-                                                <div className={`
-                                                    absolute rounded-full border-2 border-white/20 flex items-center justify-center animate-bounce z-20 transition-all duration-300
-                                                    ${variant === 'compact' ? 'w-5 h-5 text-[10px]' : 'w-8 h-8 text-xs'}
-                                                    ${(isPlayedString && playedFret === f)
-                                                        ? 'bg-green-500/40 shadow-[0_0_30px_rgba(34,197,94,1)] scale-125' // When played: transparent & glowier
-                                                        : 'bg-green-500 shadow-[0_0_20px_rgba(34,197,94,0.8)]'
-                                                    }
-                                                `}>
-                                                    <span className="text-slate-950 font-black">
-                                                        {activeMarkers[0].disp || ''}
-                                                    </span>
+                                                <div className="relative">
+                                                    {/* The Note Dot */}
+                                                    <div className={`
+                                                        absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/20 flex items-center justify-center z-20 transition-all duration-300
+                                                        ${variant === 'compact' ? 'w-5 h-5 text-[10px]' : 'w-8 h-8 text-xs'}
+                                                        ${isCorrectNote
+                                                            ? 'bg-green-500/80 shadow-[0_0_30px_rgba(34,197,94,1)] scale-125 animate-pulse'
+                                                            : 'bg-green-600 shadow-[0_0_20px_rgba(34,197,94,0.6)]'
+                                                        }
+                                                    `}>
+                                                        <span className="text-white font-black">
+                                                            {activeMarkers[0].disp || ''}
+                                                        </span>
+                                                    </div>
+
+
                                                 </div>
                                             )}
                                         </div>

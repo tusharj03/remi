@@ -3,11 +3,12 @@ import { Trophy, Flame, Music, Settings, ArrowRight, Lock, CheckCircle, Play, Bo
 import { MODULES, LESSONS } from '../../data/curriculum';
 import { Button } from '@/components/ui/Button';
 
-export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenChords, onOpenProfile }) => {
+export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenChords, onOpenProfile, unlockAll }) => {
     const totalXP = progress?.xp || 0;
     const completedIds = progress?.completedLessons || [];
 
     const isLessonLocked = (lesson) => {
+        if (unlockAll) return false;
         const index = LESSONS.findIndex(l => l.id === lesson.id);
         if (index === 0) return false;
         return !completedIds.includes(LESSONS[index - 1].id);

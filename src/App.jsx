@@ -13,40 +13,33 @@ import { ChordLibrary } from '@/features/chords/ChordLibrary';
 
 // --- Landing Page ---
 const LandingPage = ({ onStart, loading }) => (
-    <div className="min-h-screen bg-slate-950 flex flex-col relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/40 via-slate-950 to-slate-950"></div>
+    <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
+        {/* Gradient removed for pure black look */}
         <div className="relative z-10 flex flex-col items-center justify-center flex-1 p-8 text-center animate-in fade-in duration-700">
-            <div className="mb-12 relative group cursor-default">
-                <div className="absolute -inset-4 bg-indigo-500/20 blur-xl rounded-full animate-pulse group-hover:bg-indigo-500/30 transition-all"></div>
-                <div className="w-32 h-32 bg-slate-900 rounded-[2rem] flex items-center justify-center shadow-2xl transform rotate-6 border border-white/10 group-hover:rotate-12 transition-transform duration-500 overflow-hidden">
-                    <img src="/icon-white.png" alt="Remi Logo" className="w-full h-full object-contain p-4 bg-slate-900" />
-                </div>
-            </div>
-            <div className="mb-6 flex justify-center">
-                <img src="/logo-text.png" alt="Remi" className="h-40 object-contain drop-shadow-2xl brightness-0 invert" />
-            </div>
-            <p className="text-slate-400 text-xl mb-12 max-w-md leading-relaxed font-light">
-                The AI Guitar Tutor that <span className="text-indigo-400 font-bold">listens</span> and <span className="text-purple-400 font-bold">watches</span> you play.
-            </p>
 
-            <div className="grid grid-cols-2 gap-4 mb-16 w-full max-w-sm">
-                <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 backdrop-blur hover:bg-slate-800/50 transition-colors">
-                    <Zap className="w-6 h-6 text-yellow-400 mb-2 mx-auto" />
-                    <div className="text-sm font-bold text-slate-300">Instant Feedback</div>
-                </div>
-                <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 backdrop-blur hover:bg-slate-800/50 transition-colors">
-                    <Activity className="w-6 h-6 text-green-400 mb-2 mx-auto" />
-                    <div className="text-sm font-bold text-slate-300">Audio Lock™</div>
-                </div>
-            </div>
+            <h1 className="text-7xl font-black text-white mb-2 tracking-tighter" style={{ fontFamily: '"Source Sans Pro", sans-serif' }}>remi.</h1>
+            <p className="text-2xl mb-6 font-medium tracking-wide" style={{ fontFamily: 'Comfortaa, cursive', color: '#6200FF' }}>
+                duolingo. for guitar.
+            </p>
 
             <Button
                 onClick={onStart}
-                className="w-full max-w-xs h-16 text-xl rounded-2xl shadow-indigo-500/20"
+                className="w-auto h-auto transition-colors"
+                style={{
+                    backgroundColor: '#6200FF',
+                    borderRadius: '10px',
+                    padding: '12px 25px',
+                    fontSize: '16px',
+                    fontWeight: 'bold', // Visual check suggests bold despite computed 400
+                    color: 'white',
+                    fontFamily: '"Source Sans Pro", sans-serif',
+                    boxShadow: 'none'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#781EFF'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#6200FF'}
                 isLoading={loading}
             >
-                {!loading && <Play className="mr-2 fill-slate-950" />}
-                {loading ? 'Loading...' : 'Start Learning'}
+                {loading ? 'Loading...' : 'start learning'}
             </Button>
         </div>
     </div>
@@ -60,6 +53,14 @@ function App() {
     const [loading, setLoading] = useState(true);
     const [showAuth, setShowAuth] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
+    const [unlockAll, setUnlockAll] = useState(() => {
+        return localStorage.getItem('remi_unlockAll') === 'true';
+    });
+
+    // Persist unlockAll
+    useEffect(() => {
+        localStorage.setItem('remi_unlockAll', unlockAll);
+    }, [unlockAll]);
 
     // Auth Init
     useEffect(() => {
@@ -179,6 +180,8 @@ function App() {
                         setShowProfile(false);
                         setShowAuth(true);
                     }}
+                    unlockAll={unlockAll}
+                    setUnlockAll={setUnlockAll}
                 />
             )}
 
@@ -193,6 +196,7 @@ function App() {
                     onOpenTuner={() => setView('tuner')}
                     onOpenChords={() => setView('chords')}
                     onOpenProfile={() => setShowProfile(true)}
+                    unlockAll={unlockAll}
                 />
             )}
 

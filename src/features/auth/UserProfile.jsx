@@ -2,7 +2,7 @@ import React from 'react';
 import { User, LogOut, X, Shield, Star, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
-export const UserProfile = ({ user, progress, onClose, onLogout, onLoginClick }) => {
+export const UserProfile = ({ user, progress, onClose, onLogout, onLoginClick, unlockAll, setUnlockAll }) => {
     const isGuest = user?.isAnonymous;
     const email = user?.email || 'Guest User';
     const streak = progress?.streak || 0;
@@ -43,7 +43,7 @@ export const UserProfile = ({ user, progress, onClose, onLogout, onLoginClick })
                     </div>
 
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-2 gap-4 mb-8">
+                    <div className="grid grid-cols-2 gap-4 mb-6">
                         <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 flex flex-col items-center">
                             <span className="text-slate-400 text-xs font-bold uppercase mb-1">Total XP</span>
                             <div className="text-2xl font-black text-white flex items-center">
@@ -56,6 +56,23 @@ export const UserProfile = ({ user, progress, onClose, onLogout, onLoginClick })
                             <div className="text-2xl font-black text-white">
                                 {streak} Days
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Settings Section */}
+                    <div className="bg-slate-800/30 rounded-xl p-4 mb-8 border border-slate-800">
+                        <h3 className="text-slate-500 text-xs font-bold uppercase mb-3 px-1">Settings</h3>
+                        <div className="flex items-center justify-between">
+                            <div className="flex flex-col">
+                                <span className="text-white font-bold text-sm">Unlock All Lessons</span>
+                                <span className="text-slate-400 text-xs">Skip progression requirements</span>
+                            </div>
+                            <button
+                                onClick={() => setUnlockAll(!unlockAll)}
+                                className={`w-12 h-7 rounded-full transition-colors relative ${unlockAll ? 'bg-indigo-500' : 'bg-slate-700'}`}
+                            >
+                                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${unlockAll ? 'left-6' : 'left-1'}`} />
+                            </button>
                         </div>
                     </div>
 
