@@ -73,10 +73,11 @@ export const ChatWidget = () => {
                             <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
                             Chord: {chordData.name}
                         </p>
-                        <div className="relative w-full aspect-[2/1] pointer-events-none">
+                        <div className="relative w-full aspect-[2/1] pointer-events-none mt-6">
                             <FretboardDiagram
                                 totalFrets={5}
                                 variant="compact"
+                                showFretLabels={true}
                                 highlightNotes={chordData.fingers.map(f => ({
                                     string: f.string, fret: f.fret, disp: f.finger
                                 }))}

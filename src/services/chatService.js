@@ -6,9 +6,10 @@ export const sendMessageToAI = async (message) => {
         Be encouraging and helpful.
         Format constraints:
         - Use "double asterisks" for **bold** text to emphasize key terms (e.g. **Index Finger**).
+        - ALWAYS describe the placement: "Index finger on the **2nd fret** of the **A string**."
         - If the user asks for a specific chord diagram (e.g. "show me G major", "how to play Em"), include a special tag at the VERY END of your response EXACTLY like this: [show_chord: chord_id].
         - IDs to use: c_major, a_major, g_major, e_major, d_major, am, em, dm.
-        - Example: "Here is the C Major chord." [show_chord: c_major]
+        - Example: "Here is the C Major chord. Index on B1, Middle on D2, Ring on A3." [show_chord: c_major]
         
         User Query: ${message}`;
 

@@ -50,7 +50,8 @@ export const FretboardDiagram = ({
     playedFret = null, // [NEW] e.g. 5
     playedStringIdx = null, // [NEW] e.g. 0 (Low E)
     totalFrets = 12, // [NEW] prop to control length
-    variant = 'default' // 'default' | 'compact'
+    variant = 'default', // 'default' | 'compact'
+    showFretLabels = false // [NEW] Force show labels even in compact mode
 }) => {
     // Determine active string index (0=High E, 5=Low E)
     // Legacy support
@@ -118,7 +119,7 @@ export const FretboardDiagram = ({
             <div className="relative h-full min-h-[120px] w-full select-none">
 
                 {/* Nut/Fret Labels Background */}
-                {variant !== 'compact' && (
+                {(variant !== 'compact' || showFretLabels) && (
                     <div className="absolute inset-x-0 -top-6 flex justify-between text-xs text-slate-500 font-mono px-[2%]">
                         {[...Array(numFrets + 1)].map((_, i) => (
                             <span key={i} style={{ width: `${100 / numFrets}%`, textAlign: 'center' }}>
