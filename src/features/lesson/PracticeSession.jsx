@@ -603,7 +603,7 @@ export const PracticeSession = ({ lesson, onFinish }) => {
 
                     {/* --- REMI CHARACTER & CHAT --- */}
                     {phase !== 'briefing' && phase !== 'complete' && (
-                        <div className="absolute -top-24 right-0 md:-right-12 md:-top-32 flex flex-col items-center z-50 w-48 md:w-64 pointer-events-none transition-all duration-500">
+                        <div className="relative md:absolute md:-right-12 md:-top-32 flex flex-col items-center z-50 w-48 md:w-64 pointer-events-none transition-all duration-500 mb-6 md:mb-0">
                             {/* Animated Remi Sprite */}
                             <img
                                 src={getRemiState()}

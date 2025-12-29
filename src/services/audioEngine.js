@@ -156,7 +156,7 @@ class AudioEngine {
         const noteNum = 12 * (Math.log(frequency / 440) / Math.log(2));
         const midi = Math.round(noteNum) + 69;
         const note = NOTE_STRINGS[midi % 12];
-        const cents = Math.floor(1200 * (noteNum - Math.round(noteNum)));
+        const cents = Math.floor(100 * (noteNum - Math.round(noteNum)));
         const octave = Math.floor(midi / 12) - 1;
         return { note, cents, octave };
     }
