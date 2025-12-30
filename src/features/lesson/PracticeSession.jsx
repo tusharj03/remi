@@ -57,9 +57,19 @@ const BriefingView = ({ lesson, onReady }) => {
                 <div className="text-xl text-slate-400 mb-8 font-light max-w-lg">{lesson.briefing}</div>
 
                 {lesson.type !== 'posture' && (
-                    <div className="w-full max-w-lg mb-10 transform hover:scale-105 transition-transform duration-500">
-                        <div className="bg-slate-900/50 p-8 rounded-3xl border border-slate-800 backdrop-blur-xl shadow-2xl">
-                            <FretboardDiagram highlightNotes={highlights} />
+                    <div className="w-full max-w-lg mb-10 transform hover:scale-105 transition-transform duration-500 relative">
+                        {/* MOBILE REMI (Sits on top of diagram) */}
+                        {phase !== 'briefing' && phase !== 'complete' && (
+                            <div className="md:hidden absolute -top-24 right-0 z-50 pointer-events-none">
+                                <img
+                                    src={getRemiState()}
+                                    alt="Remi"
+                                    className="w-32 h-32 object-contain animate-bounce-slow drop-shadow-lg"
+                                />
+                            </div>
+                        )}
+                        <div className="bg-slate-900/50 p-4 md:p-8 rounded-3xl border border-slate-800 backdrop-blur-xl shadow-2xl">
+                            <FretboardDiagram highlightNotes={highlights} totalFrets={window.innerWidth < 768 ? 5 : 12} />
                         </div>
                     </div>
                 )}
@@ -106,7 +116,13 @@ export const PracticeSession = ({ lesson, onFinish }) => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     // Mobile Video Drag Logic
-    const [videoPos, setVideoPos] = useState(null);
+    const [videoPos, setVideoPos] = useState({ x: window.innerWidth - 180, y: 80 }); // Default top-rightish
+    useEffect(() => {
+        // Reset to reasonable default on load if needed, or just rely on CSS default + JS override
+        if (window.innerWidth < 768) {
+            setVideoPos({ x: window.innerWidth - 140, y: 100 });
+        }
+    }, []);
     const dragOffset = useRef({ x: 0, y: 0 });
 
     const handleTouchStart = (e) => {
@@ -588,14 +604,29 @@ export const PracticeSession = ({ lesson, onFinish }) => {
 
                 <div className="relative z-10 p-4 md:p-12 bg-slate-900/30 border border-white/5 rounded-[3rem] backdrop-blur-sm shadow-2xl transition-all duration-500 flex flex-col items-center w-full max-w-5xl">
 
-                    {/* FEEDBACK OVERLAY */}
+                    {/* FEEDBACK OVERLAY (Mobile: Centered Modal, Desktop: Inline) */}
                     {feedback && (
-                        <div className={`mb-6 py-4 px-8 rounded-3xl border shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col items-center gap-2 text-center animate-in slide-in-from-top-4 fade-in duration-300 w-full max-w-lg ${feedback.success ? 'bg-green-500/20 border-green-500/50 text-green-400' : 'bg-red-500/20 border-red-500/50 text-red-100'}`}>
-                            <div className="flex items-center gap-2">
-                                {feedback.success ? <CheckCircle size={24} className="fill-green-500 text-slate-900" /> : <AlertTriangle size={24} className="fill-red-500 text-slate-900" />}
-                                <span className="font-bold text-xl">{feedback.success ? "Nice!" : "Oops!"}</span>
+                        <div
+                            onClick={() => setFeedback(null)}
+                            className={`
+                            fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm md:static md:bg-transparent md:backdrop-blur-none md:p-0 md:z-auto md:block md:w-full md:max-w-lg md:mx-auto md:mb-6 cursor-pointer
+                        `}>
+                            <div className={`
+                                py-6 px-10 rounded-3xl border shadow-[0_0_50px_rgba(0,0,0,0.5)] 
+                                flex flex-col items-center gap-4 text-center 
+                                animate-in zoom-in-95 fade-in duration-300 
+                                w-full max-w-sm md:max-w-full
+                                ${feedback.success ? 'bg-green-500/20 border-green-500/50 text-green-400' : 'bg-red-500/20 border-red-500/50 text-red-100'}
+                            `}>
+                                <div className="flex items-center gap-3">
+                                    {feedback.success ? <CheckCircle size={32} className="fill-green-500 text-slate-900" /> : <AlertTriangle size={32} className="fill-red-500 text-slate-900" />}
+                                    <span className="font-bold text-2xl">{feedback.success ? "Nice!" : "Oops!"}</span>
+                                </div>
+                                <span className="text-xl font-medium leading-relaxed">{feedback.message}</span>
+
+                                {/* Mobile-only dismiss tap target (optional, but good UX) */}
+                                <div className="md:hidden text-xs opacity-50 mt-2 uppercase tracking-widest">Tap anywhere to close</div>
                             </div>
-                            <span className="text-lg font-medium leading-relaxed">{feedback.message}</span>
                         </div>
                     )}
 
@@ -603,21 +634,21 @@ export const PracticeSession = ({ lesson, onFinish }) => {
 
                     {/* --- REMI CHARACTER & CHAT --- */}
                     {phase !== 'briefing' && phase !== 'complete' && (
-                        <div className="relative md:absolute md:-right-12 md:-top-32 flex flex-col items-center z-50 w-48 md:w-64 pointer-events-none transition-all duration-500 mb-6 md:mb-0">
-                            {/* Animated Remi Sprite */}
-                            <img
-                                src={getRemiState()}
-                                alt="Remi"
-                                className="w-24 h-24 md:w-40 md:h-40 object-contain animate-bounce-slow drop-shadow-2xl z-20"
-                            />
-
-                            {/* Chat Bubble */}
-                            <div className="bg-white/95 backdrop-blur-sm text-slate-900 px-4 py-3 md:px-6 md:py-4 rounded-[2rem] rounded-tr-none shadow-xl animate-in slide-in-from-bottom-2 border-2 border-indigo-500/30 relative -mt-4 mr-8 md:mr-12 w-auto min-w-[140px] text-center transform rotate-[-2deg]">
-                                <div className="text-sm md:text-lg font-bold leading-snug font-hand">
-                                    {teacherMessage}
+                        <>
+                            {/* DESKTOP REMI (with Chat) */}
+                            <div className="hidden md:flex absolute -right-12 -top-32 flex-col items-center z-50 w-64 pointer-events-none transition-all duration-500">
+                                <img
+                                    src={getRemiState()}
+                                    alt="Remi"
+                                    className="w-40 h-40 object-contain animate-bounce-slow drop-shadow-2xl z-20"
+                                />
+                                <div className="bg-white/95 backdrop-blur-sm text-slate-900 px-6 py-4 rounded-[2rem] rounded-tr-none shadow-xl animate-in slide-in-from-bottom-2 border-2 border-indigo-500/30 relative -mt-4 mr-12 w-auto min-w-[140px] text-center transform rotate-[-2deg]">
+                                    <div className="text-lg font-bold leading-snug font-hand">
+                                        {teacherMessage}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </>
                     )}
 
                     {/* --- TEACHER LIVE FEEDBACK (Playing Phase) --- */}
@@ -738,7 +769,17 @@ export const PracticeSession = ({ lesson, onFinish }) => {
                     )}
 
 
-                    <div className="mb-8 w-full max-w-4xl transform hover:scale-[1.02] transition-transform">
+                    <div className="mb-8 w-full max-w-4xl transform hover:scale-[1.02] transition-transform relative">
+                        {/* MOBILE REMI (Sits on top - Main View) */}
+                        {phase !== 'briefing' && phase !== 'complete' && (
+                            <div className="md:hidden absolute -top-24 right-4 z-50 pointer-events-none">
+                                <img
+                                    src={getRemiState()}
+                                    alt="Remi"
+                                    className="w-32 h-32 object-contain animate-bounce-slow drop-shadow-lg"
+                                />
+                            </div>
+                        )}
                         <FretboardDiagram
                             activeString={lesson.id.startsWith('tune') ? lesson.targetNote + lesson.targetOctave : null}
                             highlightFret={currentTarget.fret}
@@ -751,6 +792,7 @@ export const PracticeSession = ({ lesson, onFinish }) => {
                             }
                             playedFret={debugData.fret}
                             playedStringIdx={debugData.stringIdx}
+                            totalFrets={window.innerWidth < 768 ? 5 : 12}
                         />
                     </div>
 
@@ -769,7 +811,7 @@ export const PracticeSession = ({ lesson, onFinish }) => {
                 </div>
 
                 {/* CONTROLS (Bottom Center) */}
-                <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-sm">
+                <div className="relative mt-8 md:absolute md:bottom-12 md:mt-0 left-0 md:left-1/2 md:transform md:-translate-x-1/2 z-30 w-full max-w-sm px-6 md:px-0">
                     {phase !== 'analyzing' && phase !== 'countdown' && phase !== 'complete' && phase !== 'playing_sequence' && phase !== 'playing_vision' && (
                         <Button
                             onClick={handleStartAnalysis}

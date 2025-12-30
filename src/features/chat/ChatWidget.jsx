@@ -103,7 +103,7 @@ export const ChatWidget = () => {
 
             {/* Chat Window */}
             {isOpen && (
-                <div className="fixed bottom-6 right-6 w-[420px] h-[600px] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden z-[100] animate-in slide-in-from-bottom-10 fade-in duration-200">
+                <div className="fixed bottom-0 sm:bottom-6 right-0 sm:right-6 w-full sm:w-[420px] h-[80vh] sm:h-[600px] bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden z-[100] animate-in slide-in-from-bottom-10 fade-in duration-200">
                     {/* Header */}
                     <div className="bg-slate-800 p-4 flex items-center justify-between border-b border-slate-700">
                         <div className="flex items-center space-x-2">
