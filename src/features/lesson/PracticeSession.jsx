@@ -58,16 +58,7 @@ const BriefingView = ({ lesson, onReady }) => {
 
                 {lesson.type !== 'posture' && (
                     <div className="w-full max-w-lg mb-10 transform hover:scale-105 transition-transform duration-500 relative">
-                        {/* MOBILE REMI (Sits on top of diagram) */}
-                        {phase !== 'briefing' && phase !== 'complete' && (
-                            <div className="md:hidden absolute -top-24 right-0 z-50 pointer-events-none">
-                                <img
-                                    src={getRemiState()}
-                                    alt="Remi"
-                                    className="w-32 h-32 object-contain animate-bounce-slow drop-shadow-lg"
-                                />
-                            </div>
-                        )}
+
                         <div className="bg-slate-900/50 p-4 md:p-8 rounded-3xl border border-slate-800 backdrop-blur-xl shadow-2xl">
                             <FretboardDiagram highlightNotes={highlights} totalFrets={window.innerWidth < 768 ? 5 : 12} />
                         </div>
@@ -116,13 +107,9 @@ export const PracticeSession = ({ lesson, onFinish }) => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     // Mobile Video Drag Logic
-    const [videoPos, setVideoPos] = useState({ x: window.innerWidth - 180, y: 80 }); // Default top-rightish
-    useEffect(() => {
-        // Reset to reasonable default on load if needed, or just rely on CSS default + JS override
-        if (window.innerWidth < 768) {
-            setVideoPos({ x: window.innerWidth - 140, y: 100 });
-        }
-    }, []);
+    const [videoPos, setVideoPos] = useState(null); // Allow CSS to control default (bottom-right)
+
+    // We can rely entirely on CSS for initial position, only setting state on Drag.
     const dragOffset = useRef({ x: 0, y: 0 });
 
     const handleTouchStart = (e) => {
@@ -772,11 +759,11 @@ export const PracticeSession = ({ lesson, onFinish }) => {
                     <div className="mb-8 w-full max-w-4xl transform hover:scale-[1.02] transition-transform relative">
                         {/* MOBILE REMI (Sits on top - Main View) */}
                         {phase !== 'briefing' && phase !== 'complete' && (
-                            <div className="md:hidden absolute -top-24 right-4 z-50 pointer-events-none">
+                            <div className="md:hidden absolute -top-16 right-0 z-50 pointer-events-none pr-4">
                                 <img
                                     src={getRemiState()}
                                     alt="Remi"
-                                    className="w-32 h-32 object-contain animate-bounce-slow drop-shadow-lg"
+                                    className="w-24 h-24 object-contain animate-bounce-slow drop-shadow-lg"
                                 />
                             </div>
                         )}
