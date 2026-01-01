@@ -109,10 +109,44 @@ export const subscribeToUserProgress = (userId, callback) => {
 };
 
 export const updateUserProgress = async (userId, currentProgress, lessonId, xpEarned) => {
+    // 1. Deduplicate Lesson
+    const oldCompleted = currentProgress?.completedLessons || [];
+    const completedLessons = oldCompleted.includes(lessonId)
+        ? oldCompleted
+        : [...oldCompleted, lessonId];
+
+    // 2. Streak Calculation (Timezone Naive / Client Time)
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+
+    let newStreak = currentProgress?.streak || 0;
+    const lastDateStr = currentProgress?.lastLessonDate;
+
+    if (lastDateStr !== todayStr) {
+        if (lastDateStr) {
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+            if (lastDateStr === yesterdayStr) {
+                // Consecutive day
+                newStreak += 1;
+            } else {
+                // Break in streak, reset to 1
+                newStreak = 1;
+            }
+        } else {
+            // First time ever
+            newStreak = 1;
+        }
+    }
+    // If lastDateStr === todayStr, streak remains same (already counted for today)
+
     const newData = {
         xp: (currentProgress?.xp || 0) + xpEarned,
-        completedLessons: [...(currentProgress?.completedLessons || []), lessonId],
-        streak: currentProgress?.streak || 1
+        completedLessons,
+        streak: newStreak,
+        lastLessonDate: todayStr
     };
 
     // Always save to local storage as backup (NAMESPACED)
@@ -125,7 +159,10 @@ export const updateUserProgress = async (userId, currentProgress, lessonId, xpEa
         // Use set with merge to be safe against missing docs
         await setDoc(docRef, {
             xp: newData.xp,
-            completedLessons: arrayUnion(lessonId)
+            completedLessons: arrayUnion(lessonId), // Firestore arrayUnion handles dedupe on server too
+            colCompleted: completedLessons, // Explicit complete list backup if needed
+            streak: newData.streak,
+            lastLessonDate: newData.lastLessonDate
         }, { merge: true });
     } catch (e) {
         console.warn("Could not sync to cloud (Permissions/Net). Saved locally.", e);
