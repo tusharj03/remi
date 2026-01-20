@@ -28,102 +28,16 @@ export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenC
             {/* Background Effects */}
             <div className="absolute top-0 left-0 right-0 h-[500px] bg-gradient-to-b from-indigo-900/20 to-slate-950 pointer-events-none" />
 
-            <div className="max-w-7xl mx-auto px-6 pt-8 grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <div className="max-w-7xl mx-auto px-6 pt-8 grid grid-cols-1 lg:grid-cols-12 gap-y-8 lg:gap-x-12">
 
-                {/* --- MAIN CURRICULUM (Left Col) --- */}
-                <div className="lg:col-span-8 flex flex-col gap-8 order-2 lg:order-1">
-
-                    {/* Header */}
-                    <div>
-                        <h1 className="text-4xl font-black text-white mb-2 tracking-tight">Learning Path</h1>
-                        <p className="text-slate-400">Master the guitar, one step at a time.</p>
-                    </div>
-
-                    {/* Modules Vertical List */}
-                    <div className="flex flex-col gap-6 relative">
-                        {/* Connecting Line */}
-                        <div className="absolute left-8 top-8 bottom-8 w-1 bg-slate-800/50 rounded-full hidden md:block"></div>
-
-                        {MODULES.map((mod, modIdx) => {
-                            const modLessons = LESSONS.filter(l => l.moduleId === mod.id);
-                            const isCurrentModule = mod.id === activeModuleId;
-                            const isLockedModule = !isCurrentModule && modLessons.every(l => isLessonLocked(l)) && !completedIds.includes(modLessons[0].id); // Simplified module lock
-
-                            return (
-                                <div key={mod.id} className={`relative pl-0 md:pl-20 transition-opacity duration-500 ${isLockedModule ? 'opacity-50 grayscale' : 'opacity-100'}`}>
-
-                                    {/* Timeline Node (Desktop) */}
-                                    <div className={`hidden md:flex absolute left-4 w-9 h-9 -ml-px items-center justify-center rounded-full border-4 z-10 
-                                        ${isCurrentModule
-                                            ? 'bg-indigo-500 border-slate-950 shadow-[0_0_20px_rgba(99,102,241,0.5)]'
-                                            : isLockedModule ? 'bg-slate-800 border-slate-950' : 'bg-slate-900 border-indigo-500/30'
-                                        }
-                                    `}>
-                                        {isCurrentModule && <div className="w-3 h-3 bg-white rounded-full animate-pulse" />}
-                                    </div>
-
-                                    {/* Module Card */}
-                                    <div className="bg-slate-900/50 glass-panel border border-white/5 rounded-3xl overflow-hidden">
-                                        {/* Module Header */}
-                                        <div className={`p-6 bg-gradient-to-r ${mod.color.replace('from-', 'from-white/5 ').replace('to-', 'to-transparent ')}/10 border-b border-white/5`}>
-                                            <h3 className="text-xl font-bold text-white mb-1">{mod.title}</h3>
-                                            <p className="text-sm text-slate-400">{modLessons.length} Lessons</p>
-                                        </div>
-
-                                        {/* Lessons List */}
-                                        <div className="divide-y divide-white/5">
-                                            {modLessons.map((lesson, idx) => {
-                                                const locked = isLessonLocked(lesson);
-                                                const completed = isLessonCompleted(lesson);
-                                                const isNext = lesson.id === nextLesson.id;
-
-                                                return (
-                                                    <button
-                                                        key={lesson.id}
-                                                        disabled={locked}
-                                                        onClick={() => onSelectLesson(lesson)}
-                                                        className={`w-full flex items-center gap-4 p-4 text-left transition-all hover:bg-white/5
-                                                            ${isNext ? 'bg-indigo-500/10' : ''}
-                                                            ${locked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}
-                                                        `}
-                                                    >
-                                                        {/* Status Icon */}
-                                                        <div className={`
-                                                            w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
-                                                            ${completed ? 'bg-green-500 text-slate-900' :
-                                                                isNext ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/40' :
-                                                                    'bg-slate-800 text-slate-500'}
-                                                        `}>
-                                                            {completed ? <CheckCircle size={20} /> :
-                                                                locked ? <Lock size={16} /> :
-                                                                    <Play size={18} fill="currentColor" className="ml-0.5" />}
-                                                        </div>
-
-                                                        <div className="flex-1">
-                                                            <h4 className={`font-bold ${completed || isNext ? 'text-white' : 'text-slate-400'}`}>
-                                                                {lesson.title}
-                                                            </h4>
-                                                            <p className="text-xs text-slate-500 line-clamp-1">{lesson.description}</p>
-                                                        </div>
-
-                                                        {isNext && (
-                                                            <div className="px-3 py-1 rounded-full bg-indigo-500 text-white text-xs font-bold shadow-lg animate-pulse-slow">
-                                                                START
-                                                            </div>
-                                                        )}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+                {/* --- HEADER (Top Left) --- */}
+                <div className="lg:col-span-8">
+                    <h1 className="text-4xl font-black text-white mb-2 tracking-tight">Learning Path</h1>
+                    <p className="text-slate-400">Master the guitar, one step at a time.</p>
                 </div>
 
-                {/* --- RIGHT SIDEBAR (Widgets) --- */}
-                <div className="lg:col-span-4 flex flex-col gap-6 order-1 lg:order-2">
+                {/* --- RIGHT SIDEBAR / PROFILE (Middle on Mobile, Right on Desktop) --- */}
+                <div className="lg:col-span-4 lg:row-span-2 flex flex-col gap-6">
 
                     {/* User Profile Card */}
                     <div className="bg-slate-900/50 glass-panel border border-white/5 rounded-3xl p-6 sticky top-24">
@@ -194,6 +108,88 @@ export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenC
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {/* --- MODULES LIST (Bottom on Mobile, Left Bottom on Desktop) --- */}
+                <div className="lg:col-span-8 flex flex-col gap-6 relative">
+                    {/* Connecting Line */}
+                    <div className="absolute left-8 top-8 bottom-8 w-1 bg-slate-800/50 rounded-full hidden md:block"></div>
+
+                    {MODULES.map((mod, modIdx) => {
+                        const modLessons = LESSONS.filter(l => l.moduleId === mod.id);
+                        const isCurrentModule = mod.id === activeModuleId;
+                        const isLockedModule = !isCurrentModule && modLessons.every(l => isLessonLocked(l)) && !completedIds.includes(modLessons[0].id); // Simplified module lock
+
+                        return (
+                            <div key={mod.id} className={`relative pl-0 md:pl-20 transition-opacity duration-500 ${isLockedModule ? 'opacity-50 grayscale' : 'opacity-100'}`}>
+
+                                {/* Timeline Node (Desktop) */}
+                                <div className={`hidden md:flex absolute left-4 w-9 h-9 -ml-px items-center justify-center rounded-full border-4 z-10 
+                                    ${isCurrentModule
+                                        ? 'bg-indigo-500 border-slate-950 shadow-[0_0_20px_rgba(99,102,241,0.5)]'
+                                        : isLockedModule ? 'bg-slate-800 border-slate-950' : 'bg-slate-900 border-indigo-500/30'
+                                    }
+                                `}>
+                                    {isCurrentModule && <div className="w-3 h-3 bg-white rounded-full animate-pulse" />}
+                                </div>
+
+                                {/* Module Card */}
+                                <div className="bg-slate-900/50 glass-panel border border-white/5 rounded-3xl overflow-hidden">
+                                    {/* Module Header */}
+                                    <div className={`p-6 bg-gradient-to-r ${mod.color.replace('from-', 'from-white/5 ').replace('to-', 'to-transparent ')}/10 border-b border-white/5`}>
+                                        <h3 className="text-xl font-bold text-white mb-1">{mod.title}</h3>
+                                        <p className="text-sm text-slate-400">{modLessons.length} Lessons</p>
+                                    </div>
+
+                                    {/* Lessons List */}
+                                    <div className="divide-y divide-white/5">
+                                        {modLessons.map((lesson, idx) => {
+                                            const locked = isLessonLocked(lesson);
+                                            const completed = isLessonCompleted(lesson);
+                                            const isNext = lesson.id === nextLesson.id;
+
+                                            return (
+                                                <button
+                                                    key={lesson.id}
+                                                    disabled={locked}
+                                                    onClick={() => onSelectLesson(lesson)}
+                                                    className={`w-full flex items-center gap-4 p-4 text-left transition-all hover:bg-white/5
+                                                        ${isNext ? 'bg-indigo-500/10' : ''}
+                                                        ${locked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}
+                                                    `}
+                                                >
+                                                    {/* Status Icon */}
+                                                    <div className={`
+                                                        w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
+                                                        ${completed ? 'bg-green-500 text-slate-900' :
+                                                            isNext ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/40' :
+                                                                'bg-slate-800 text-slate-500'}
+                                                    `}>
+                                                        {completed ? <CheckCircle size={20} /> :
+                                                            locked ? <Lock size={16} /> :
+                                                                <Play size={18} fill="currentColor" className="ml-0.5" />}
+                                                    </div>
+
+                                                    <div className="flex-1">
+                                                        <h4 className={`font-bold ${completed || isNext ? 'text-white' : 'text-slate-400'}`}>
+                                                            {lesson.title}
+                                                        </h4>
+                                                        <p className="text-xs text-slate-500 line-clamp-1">{lesson.description}</p>
+                                                    </div>
+
+                                                    {isNext && (
+                                                        <div className="px-3 py-1 rounded-full bg-indigo-500 text-white text-xs font-bold shadow-lg animate-pulse-slow">
+                                                            START
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
 
