@@ -97,10 +97,16 @@ class AudioEngine {
                 likelyStringIdx: pos.stringIdx
             };
 
+            this.lastData = data; // [NEW] Store for polling
+
             this.callbacks.forEach(cb => cb(data));
             this.rafId = requestAnimationFrame(loop);
         };
         loop();
+    }
+
+    getLastFrame() {
+        return this.lastData || { rms: 0, pitch: -1, note: '--', stability: 0 };
     }
 
     stop() {

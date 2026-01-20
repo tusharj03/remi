@@ -2,8 +2,9 @@ import React from 'react';
 import { Trophy, Flame, Music, Settings, ArrowRight, Lock, CheckCircle, Play, BookOpen, User } from 'lucide-react';
 import { MODULES, LESSONS } from '../../data/curriculum';
 import { Button } from '@/components/ui/Button';
+import { RemiCompanion } from '@/components/ui/RemiCompanion';
 
-export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenChords, onOpenProfile, unlockAll }) => {
+export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenChords, onOpenProfile, unlockAll, onAuth }) => {
     const totalXP = progress?.xp || 0;
     const completedIds = progress?.completedLessons || [];
 
@@ -11,7 +12,10 @@ export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenC
         if (unlockAll) return false;
         const index = LESSONS.findIndex(l => l.id === lesson.id);
         if (index === 0) return false;
-        return !completedIds.includes(LESSONS[index - 1].id);
+        const prevId = LESSONS[index - 1].id;
+        const isUnlocked = completedIds.includes(prevId);
+        // console.log(`Lesson ${lesson.id}: Index ${index}, Prev ${prevId}, Unlocked? ${isUnlocked}, CompletedIds:`, completedIds);
+        return !isUnlocked;
     };
 
     const isLessonCompleted = (lesson) => completedIds.includes(lesson.id);
@@ -22,7 +26,7 @@ export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenC
             <div className="absolute top-0 left-0 w-full h-96 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-slate-950 to-slate-950 pointer-events-none" />
 
             {/* Header */}
-            <div className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex justify-between items-center">
+            <div className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex justify-between items-center">
                 <div className="flex items-center space-x-4">
                     <div className="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center border border-slate-800">
                         <Flame size={20} className="text-orange-500 fill-orange-500/20" />
@@ -39,6 +43,9 @@ export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenC
                             {totalXP.toLocaleString()} XP
                         </span>
                     </div>
+
+
+
                     <button
                         onClick={onOpenProfile}
                         className="w-10 h-10 rounded-full bg-slate-900/50 border border-white/10 flex items-center justify-center hover:bg-slate-800 transition-colors"
@@ -48,88 +55,90 @@ export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenC
                 </div>
             </div>
 
-            {/* Modules */}
-            <div className="max-w-md mx-auto p-6 space-y-12 relative z-10">
-                {MODULES.map((mod) => (
-                    <div key={mod.id} className="space-y-6">
-                        <div className={`text-transparent bg-clip-text bg-gradient-to-r ${mod.color} font-black text-2xl uppercase tracking-tighter drop-shadow-sm`}>
-                            {mod.title}
-                        </div>
-                        <div className="space-y-4">
-                            {LESSONS.filter(l => l.moduleId === mod.id).map(lesson => {
-                                const locked = isLessonLocked(lesson);
-                                const completed = isLessonCompleted(lesson);
-
-                                return (
-                                    <button
-                                        key={lesson.id}
-                                        onClick={() => !locked && onSelectLesson(lesson)}
-                                        disabled={locked}
-                                        className={`
-                                            relative w-full p-1 rounded-3xl text-left transition-all duration-300 group
-                                            ${locked
-                                                ? 'opacity-60 cursor-not-allowed'
-                                                : 'hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/10'
-                                            }
-                                        `}
-                                    >
-                                        <div className={`
-                                            absolute inset-0 rounded-3xl bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-500
-                                            ${completed ? 'from-green-500/20 to-emerald-500/20' : 'from-indigo-500/20 to-purple-500/20'}
-                                        `} />
-
-                                        <div className={`
-                                            relative bg-slate-900/50 backdrop-blur-md border p-5 rounded-[22px] flex items-center justify-between
-                                            ${locked ? 'border-slate-800' : completed ? 'border-green-900/50' : 'border-indigo-500/30'}
-                                        `}>
-                                            <div className="flex items-center space-x-5">
-                                                <div className={`
-                                                    w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-lg shadow-inner transition-transform group-hover:scale-110 duration-300
-                                                    ${locked
-                                                        ? 'bg-slate-800 text-slate-600'
-                                                        : completed
-                                                            ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-900/20'
-                                                            : 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-900/20'
-                                                    }
-                                                `}>
-                                                    {locked ? <Lock size={20} /> : completed ? <CheckCircle size={24} /> : <Play size={24} fill="currentColor" />}
-                                                </div>
-                                                <div>
-                                                    <h3 className={`font-bold text-lg mb-0.5 ${locked ? 'text-slate-500' : 'text-white'}`}>{lesson.title}</h3>
-                                                    <p className="text-xs text-slate-400 font-medium">{lesson.description}</p>
-                                                </div>
-                                            </div>
-                                            {!locked && !completed && (
-                                                <div className="opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                                                    <div className="bg-indigo-500/20 p-2 rounded-full">
-                                                        <ArrowRight className="text-indigo-400 w-5 h-5" />
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
+            {/* --- HERO SECTION --- */}
+            <div
+                onClick={() => {
+                    const nextLesson = LESSONS.find(l => !completedIds.includes(l.id)) || LESSONS[0];
+                    onSelectLesson(nextLesson);
+                }}
+                className="relative h-64 mx-6 mt-6 rounded-3xl overflow-hidden shadow-2xl group cursor-pointer transition-transform hover:scale-[1.02] duration-500"
+            >
+                <img src="/hero-guitar.jpg" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-500" alt="Hero" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
+                <div className="absolute bottom-6 left-6">
+                    <div className="bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full text-xs font-bold inline-block mb-2 backdrop-blur-md border border-indigo-500/30">
+                        CONTINUE LEARNING
                     </div>
-                ))}
+                    <h2 className="text-3xl font-black text-white mb-1">Module 1: Foundations</h2>
+                    <p className="text-slate-300 text-sm">You are 80% of the way to the next level.</p>
+                </div>
+                <div className="absolute right-6 bottom-6 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform text-slate-900">
+                    <Play fill="currentColor" size={20} className="ml-1" />
+                </div>
             </div>
 
-            {/* Tab Bar */}
-            <div className="fixed bottom-0 w-full bg-slate-950/80 backdrop-blur-xl border-t border-white/5 p-2 flex justify-around safe-area-bottom z-50">
-                <button className="flex flex-col items-center justify-center w-16 h-16 text-indigo-400 transition-transform active:scale-90">
-                    <Music size={24} className="mb-1.5" />
-                    <span className="text-[10px] font-bold tracking-wide">Learn</span>
-                </button>
-                <button onClick={onOpenChords} className="flex flex-col items-center justify-center w-16 h-16 text-slate-500 hover:text-white transition-all active:scale-90">
-                    <BookOpen size={24} className="mb-1.5" />
-                    <span className="text-[10px] font-bold tracking-wide">Chords</span>
-                </button>
-                <button onClick={onOpenTuner} className="flex flex-col items-center justify-center w-16 h-16 text-slate-500 hover:text-white transition-all active:scale-90">
-                    <Settings size={24} className="mb-1.5" />
-                    <span className="text-[10px] font-bold tracking-wide">Tuner</span>
-                </button>
+            {/* --- MODULES (Horizontal Scroll) --- */}
+            <div className="mt-8 pl-6 pb-12">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <BookOpen size={18} className="text-indigo-400" /> Your Path
+                </h3>
+
+                <div className="flex gap-6 overflow-x-auto pb-8 snap-x snap-mandatory no-scrollbar pr-6">
+                    {MODULES.map((mod) => (
+                        <div
+                            key={mod.id}
+                            className="snap-center relative flex-shrink-0 w-80 h-96 rounded-3xl overflow-hidden glass-panel border border-white/5 group hover:border-indigo-500/50 transition-all duration-500"
+                        >
+                            {/* Background Image / Gradient */}
+                            <div className={`absolute inset-0 bg-gradient-to-br ${mod.locked ? 'from-slate-800 to-slate-900' : 'from-indigo-900/40 to-slate-900'} transition-colors duration-500`}></div>
+
+                            <div className="relative p-6 h-full flex flex-col z-10">
+                                {/* Removed ID span as requested */}
+                                <h4 className={`text-2xl font-bold mb-2 min-h-[4rem] flex items-center ${mod.locked ? 'text-slate-600' : 'text-white'}`}>{mod.title}</h4>
+                                <p className="text-sm text-slate-400 mb-6 line-clamp-2">{mod.description}</p>
+
+                                {/* Lessons List */}
+                                <div className="space-y-3 flex-1 overflow-y-auto no-scrollbar mask-gradient-b">
+                                    {LESSONS.filter(l => l.moduleId === mod.id).map((lesson, idx) => {
+                                        const isLocked = !unlockAll && ((idx > 0 && !progress?.completed?.includes(LESSONS.find(prev => prev.moduleId === mod.id && LESSONS.indexOf(prev) === LESSONS.indexOf(lesson) - 1)?.id)) || mod.locked);
+                                        const isCompleted = progress?.completed?.includes(lesson.id);
+
+                                        return (
+                                            <button
+                                                key={lesson.id}
+                                                disabled={isLocked}
+                                                onClick={() => onSelectLesson(lesson)}
+                                                className={`
+                                                    w-full flex items-center gap-4 p-3 rounded-xl text-left transition-all border
+                                                    ${isCompleted
+                                                        ? 'bg-green-500/10 border-green-500/20 text-green-400'
+                                                        : isLocked
+                                                            ? 'bg-slate-800/30 border-transparent text-slate-600'
+                                                            : 'bg-white/5 border-white/5 hover:bg-white/10 text-white'
+                                                    }
+                                                `}
+                                            >
+                                                <div className={`
+                                                    w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
+                                                    ${isCompleted ? 'bg-green-500 text-slate-900' : 'bg-slate-800'}
+                                                `}>
+                                                    {isCompleted ? <CheckCircle size={14} /> : isLocked ? <Lock size={12} /> : (idx + 1)}
+                                                </div>
+                                                <span className="font-bold text-sm truncate">{lesson.title}</span>
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
+
+            {/* Footer Spacer */}
+            <div className="h-24"></div>
+
+            <RemiCompanion />
         </div>
     );
 };

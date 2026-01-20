@@ -3,6 +3,8 @@ import { Loader, CheckCircle, AlertTriangle, Zap, Settings, Info, Play, Pause, X
 import { audioEngine } from '@/services/audioEngine';
 import { analyzeWithRork } from '@/services/visionService';
 import { initHandTracker } from '@/services/handTracker';
+import { neuroSync } from '@/services/neuroSync/neuroSync';
+import { VideoIntervention } from '@/components/ui/VideoIntervention';
 import { Button } from '@/components/ui/Button';
 import remiSpeaking from '@/assets/remi/speaking.png';
 import remiThinking from '@/assets/remi/thinking.png';
@@ -47,38 +49,43 @@ const BriefingView = ({ lesson, onReady }) => {
     const highlights = getVisuals();
 
     return (
-        <div className="absolute inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center p-6 animate-in zoom-in duration-500">
-            <div className="max-w-2xl w-full flex flex-col items-center text-center">
-                <div className="w-20 h-20 bg-indigo-500/20 rounded-3xl flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(99,102,241,0.3)]">
-                    <Info className="w-10 h-10 text-indigo-400" />
-                </div>
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center p-6 animate-in zoom-in duration-500 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/40 via-slate-950 to-slate-950">
+            <div className="max-w-4xl w-full flex flex-col md:flex-row items-center gap-12">
 
-                <h2 className="text-5xl font-black text-white mb-4 tracking-tight">{lesson.title}</h2>
-                <div className="text-xl text-slate-400 mb-8 font-light max-w-lg">{lesson.briefing}</div>
-
-                {lesson.type !== 'posture' && (
-                    <div className="w-full max-w-lg mb-10 transform hover:scale-105 transition-transform duration-500 relative">
-
-                        <div className="bg-slate-900/50 p-4 md:p-8 rounded-3xl border border-slate-800 backdrop-blur-xl shadow-2xl">
-                            <FretboardDiagram highlightNotes={highlights} totalFrets={window.innerWidth < 768 ? 5 : 12} />
-                        </div>
+                {/* Visual Side */}
+                <div className="flex-1 flex flex-col items-center">
+                    <div className="w-24 h-24 bg-indigo-500/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(99,102,241,0.3)] border border-indigo-500/30">
+                        <Info className="w-10 h-10 text-indigo-400" />
                     </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-lg mb-8">
-                    {lesson.prompts.map((p, i) => (
-                        <div key={i} className="flex items-center bg-slate-900/40 p-3 rounded-xl border border-slate-800/50">
-                            <CheckCircle className="w-5 h-5 text-green-500 mr-3 shrink-0" />
-                            <span className="text-slate-300 text-sm font-medium">{p}</span>
-                        </div>
-                    ))}
+                    <h2 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-400 mb-6 tracking-tighter text-center">{lesson.title}</h2>
+                    <p className="text-xl text-slate-400 font-light text-center max-w-md">{lesson.briefing}</p>
                 </div>
 
-                <Button onClick={onReady} size="xl" className="w-full max-w-xs shadow-indigo-500/20 shadow-lg text-lg h-14">
-                    Let's Play
-                </Button>
+                {/* Interactive Side */}
+                <div className="flex-1 w-full bg-slate-900/40 backdrop-blur-xl p-8 rounded-[3rem] border border-white/10 shadow-2xl flex flex-col items-center">
+                    {lesson.type !== 'posture' && (
+                        /* Added h-48 to force height for the FretboardDiagram */
+                        <div className="w-full h-48 mb-8 relative">
+                            <div className="absolute inset-0 bg-indigo-500/10 blur-xl rounded-full"></div>
+                            <FretboardDiagram highlightNotes={highlights} totalFrets={5} className="w-full h-full" />
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 gap-4 w-full mb-8">
+                        {lesson.prompts.map((p, i) => (
+                            <div key={i} className="flex items-center bg-black/20 p-4 rounded-2xl border border-white/5">
+                                <CheckCircle className="w-5 h-5 text-green-400 mr-4 shrink-0" />
+                                <span className="text-slate-200 font-medium">{p}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    <Button onClick={onReady} size="xl" className="w-full text-lg h-16 rounded-2xl bg-indigo-600 hover:bg-indigo-500 shadow-xl shadow-indigo-900/50 border-t border-white/10">
+                        <Play fill="currentColor" className="mr-2" /> Start Lesson
+                    </Button>
+                </div>
             </div>
-        </div>
+        </div >
     );
 };
 
@@ -101,6 +108,7 @@ export const PracticeSession = ({ lesson, onFinish }) => {
     const [phase, setPhase] = useState('briefing'); // briefing, instruct, demo, countdown, playing_sequence, analyzing, result
     const [countdown, setCountdown] = useState(3);
     const [feedback, setFeedback] = useState(null);
+    const [warning, setWarning] = useState(null); // Non-blocking HUD warning
     const [teacherMessage, setTeacherMessage] = useState(getIntroMessage(lesson));
     const [debugData, setDebugData] = useState({});
     const [settings, setSettings] = useState({ isLefty: false, showDebug: false });
@@ -342,6 +350,8 @@ export const PracticeSession = ({ lesson, onFinish }) => {
                 };
             } catch (err) {
                 console.error("Media Error:", err);
+                setWarning(`Error: ${err.message || 'Could not access camera/microphone'}. Please check permissions.`);
+                setFeedback({ success: false, message: "Media Setup Failed. Refresh to try again." });
             }
         };
 
@@ -452,9 +462,9 @@ export const PracticeSession = ({ lesson, onFinish }) => {
 
         // Finish
         timeouts.push(setTimeout(() => {
-            setTeacherMessage("Your turn! Give it a try. Don't rush.");
-            setPhase('instruct'); // Go to instruct/ready screen
-            setCurrentStep(0);
+            setTeacherMessage("Your turn! Get ready...");
+            // Auto-advance to countdown to remove friction (User "Let's Play" click is enough intent)
+            handleStartAnalysis();
         }, currentTime + 1000));
 
         return () => {
@@ -465,6 +475,7 @@ export const PracticeSession = ({ lesson, onFinish }) => {
 
     // Listen Phase
     const handleStartAnalysis = () => {
+        if (phase === 'countdown') return; // Prevent double-trigger
         setFeedback(null);
         setCurrentStep(0);
         historyRef.current = { notes: [], volumes: [], chromas: [], strings: [] };
@@ -494,47 +505,83 @@ export const PracticeSession = ({ lesson, onFinish }) => {
         }, 1000);
     };
 
-    // --- CONTINUOUS VISION LOOP (Strum / Posture) ---
+    // --- NEURO-SYNC INTEGRATION TIE-IN ---
+    const [videoPopup, setVideoPopup] = useState(null);
     useEffect(() => {
         if (phase !== 'playing_vision') return;
+        if (videoPopup) return; // Paused for video
 
-        const interval = setInterval(async () => {
-            if (!videoRef.current) return;
+        // 1. Init NeuroSync
+        neuroSync.init(videoRef.current, { lesson }).then(() => {
+            console.log("🧠 [NEURO-SYNC] Connected to Practice Session");
+        });
 
-            // Capture
-            const cvs = document.createElement('canvas');
-            cvs.width = videoRef.current.videoWidth;
-            cvs.height = videoRef.current.videoHeight;
-            cvs.getContext('2d').drawImage(videoRef.current, 0, 0);
-            const base64Image = cvs.toDataURL('image/jpeg', 0.8).split(',')[1];
-
-            // Analyze
-            isListeningRef.current = true;
-            const aiResult = await analyzeWithRork(base64Image, lesson);
-            isListeningRef.current = false;
-
-            if (aiResult?.success) {
-                // Success!
-                const praise = "Nice! Great form.";
-                speak(praise);
-                setFeedback({ success: true, message: praise, xpEarned: lesson.xp });
-                clearInterval(interval);
-
-                setTimeout(() => {
-                    setPhase('complete');
-                }, 1500);
-
-            } else {
-                // Feedback
-                const msg = aiResult?.feedback || "Adjust your hand...";
-                setFeedback({ success: false, message: msg, xpEarned: 0 });
-                speak(msg); // Teacher voice guidance
+        // 2. Subscribe to Brain
+        const unsub = neuroSync.subscribe((state) => {
+            // Update HUD Data
+            if (state.audio) {
+                setDebugData(prev => ({
+                    ...prev,
+                    vol: (state.audio?.volume || 0).toFixed(3),
+                    note: state.audio.currentNote || '--',
+                    stability: state.audio.stability
+                }));
             }
 
-        }, 3000); // Check every 3 seconds (Vision API is slower/cleanerpace)
+            // Handle Decisions
+            if (state.status === 'listening') {
+                // Only clear if enough time passed since last warning
+                if (warning && performance.now() - lastWarningTime.current > 3000) {
+                    setWarning(null);
+                }
+            }
+            else if (state.status === 'correcting') {
+                setWarning(state.feedback); // Show HUD Warning ("Buzzing", "Wrist")
+                lastWarningTime.current = performance.now();
+                speak(state.feedback); // Optional voice
 
-        return () => clearInterval(interval);
-    }, [phase, lesson]);
+                // --- INSTANT MASTERY INTERVENTION ---
+                // If specific keyword detected, trigger video
+                if (lesson.videoGuide && !videoPopup) {
+                    const guide = lesson.videoGuide;
+                    // Simple Keyword Match
+                    const keywords = Object.keys(guide.triggers || {});
+                    const match = keywords.find(k => state.feedback.includes(k));
+
+                    if (match) {
+                        setVideoPopup({
+                            videoId: guide.id,
+                            timestamp: guide.triggers[match],
+                            reason: state.feedback
+                        });
+                        neuroSync.stop(); // Pause engine
+                    }
+                    // Or just generic "Structure" failure after 5s? 
+                    // For now, keyword driven.
+                }
+            }
+            else if (state.status === 'judging') {
+                setWarning("Analyzing...");
+            }
+            else if (state.status === 'success') {
+                setFeedback({ success: true, message: state.feedback, xpEarned: lesson.xp });
+                speak("Perfect!");
+                neuroSync.stop();
+                setPhase('complete');
+            }
+        });
+
+        return () => {
+            unsub();
+            neuroSync.stop();
+        };
+    }, [phase, lesson, videoPopup]);
+
+    // Resume when video closes
+    const handleCloseVideo = () => {
+        setVideoPopup(null);
+        // Effect will re-run and re-init NeuroSync
+    };
 
 
     // [Previous performAnalysis/finalize removed as they are legacy now]
@@ -562,315 +609,229 @@ export const PracticeSession = ({ lesson, onFinish }) => {
     const getRemiState = () => {
         if (feedback?.success) return remiHappy;
         if (feedback && !feedback.success) return remiSad;
+        // Show sad face for warnings (unless it's just processing)
+        if (warning && !warning.includes('Analyzing')) return remiSad;
+
         if (phase === 'analyzing' || phase === 'demo') return remiThinking;
         if (phase === 'briefing' || phase === 'instruct') return remiSpeaking;
         return remiFlying;
     };
 
     return (
-        <div className="fixed inset-0 bg-slate-950 z-50 flex flex-col overflow-hidden font-sans">
-            {/* --- TOP BAR --- */}
-            <div className="absolute top-0 left-0 right-0 p-6 z-30 flex justify-between items-start pointer-events-none">
-                <div className="pointer-events-auto">
-                    <h2 className="text-3xl font-black text-white drops-shadow-md">{lesson.title}</h2>
-                    <div className="flex items-center gap-2 mt-2">
-                        <div className="bg-slate-900/80 backdrop-blur px-3 py-1 rounded-full text-indigo-400 font-bold text-sm border border-indigo-500/30">
-                            Streak: {streak} / {REQUIRED_STREAK} <Flame className={`inline w-4 h-4 ml-1 ${streak > 0 ? 'text-orange-500 fill-orange-500' : 'text-slate-600'}`} />
+        <div className="fixed inset-0 bg-slate-950 z-50 flex flex-col font-sans overflow-hidden">
+
+            {/* --- LAYOUT: HEADER (Top Bar) --- */}
+            <div className="flex-none h-20 px-8 flex items-center justify-between border-b border-white/5 bg-slate-900/50 backdrop-blur-xl z-40 relative">
+                <div className="flex items-center gap-4">
+                    <div className="bg-indigo-600/20 p-2 rounded-xl border border-indigo-500/30">
+                        <Activity className="w-6 h-6 text-indigo-400" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-bold text-white tracking-tight">{lesson.title}</h2>
+                        <div className="flex items-center text-xs text-slate-400 font-medium uppercase tracking-widest gap-2">
+                            <Flame className={`w-3 h-3 ${streak > 0 ? 'text-orange-500 fill-orange-500' : 'text-slate-600'}`} />
+                            Streak: {streak}
                         </div>
                     </div>
                 </div>
 
-                <button onClick={() => onFinish(null)} className="pointer-events-auto p-3 bg-slate-900/50 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-all border border-slate-700/50 backdrop-blur">
-                    <XCircle size={24} />
-                </button>
+                <div className="flex items-center gap-4">
+                    {/* Metronome Toggle (Compact) */}
+                    {lesson.bpm && (
+                        <button
+                            onClick={() => setIsMetronomeOn(prev => !prev)}
+                            className={`h-10 w-10 rounded-full flex items-center justify-center transition-all ${isMetronomeOn ? 'bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
+                        >
+                            <Activity size={18} className={isMetronomeOn ? 'animate-pulse' : ''} />
+                        </button>
+                    )}
+
+                    <button onClick={() => onFinish(null)} className="h-10 w-10 rounded-full bg-slate-800/50 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors border border-white/5">
+                        <XCircle size={20} />
+                    </button>
+                </div>
             </div>
 
-            {/* --- MAIN CONTENT CENTER --- */}
-            <div className="flex-1 flex flex-col items-center justify-center relative bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/20 via-slate-950 to-slate-950">
-                <div className="absolute inset-0 opacity-10 pointer-events-none"></div>
+            {/* --- LAYOUT: HERO SECTION (Middle) --- */}
+            <div className="flex-1 relative flex flex-col items-center justify-start pt-4 md:pt-12 p-4">
+                {/* Ambient Background */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-900/10 via-slate-950 to-slate-950 -z-10"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-96 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none"></div>
 
-                <div className="relative z-10 p-4 md:p-12 bg-slate-900/30 border border-white/5 rounded-[3rem] backdrop-blur-sm shadow-2xl transition-all duration-500 flex flex-col items-center w-full max-w-5xl">
+                {/* --- 1. STATUS & INSTRUCTION ZONEZone (Top Center) --- */}
+                <div className="w-full flex flex-col items-center z-30 pointer-events-none mb-4 shrink-0 relative">
 
-                    {/* FEEDBACK OVERLAY (Mobile: Centered Modal, Desktop: Inline) */}
-                    {feedback && (
-                        <div
-                            onClick={() => setFeedback(null)}
-                            className={`
-                            fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm md:static md:bg-transparent md:backdrop-blur-none md:p-0 md:z-auto md:block md:w-full md:max-w-lg md:mx-auto md:mb-6 cursor-pointer
-                        `}>
-                            <div className={`
-                                py-6 px-10 rounded-3xl border shadow-[0_0_50px_rgba(0,0,0,0.5)] 
-                                flex flex-col items-center gap-4 text-center 
-                                animate-in zoom-in-95 fade-in duration-300 
-                                w-full max-w-sm md:max-w-full
-                                ${feedback.success ? 'bg-green-500/20 border-green-500/50 text-green-400' : 'bg-red-500/20 border-red-500/50 text-red-100'}
-                            `}>
-                                <div className="flex items-center gap-3">
-                                    {feedback.success ? <CheckCircle size={32} className="fill-green-500 text-slate-900" /> : <AlertTriangle size={32} className="fill-red-500 text-slate-900" />}
-                                    <span className="font-bold text-2xl">{feedback.success ? "Nice!" : "Oops!"}</span>
-                                </div>
-                                <span className="text-xl font-medium leading-relaxed">{feedback.message}</span>
-
-                                {/* Mobile-only dismiss tap target (optional, but good UX) */}
-                                <div className="md:hidden text-xs opacity-50 mt-2 uppercase tracking-widest">Tap anywhere to close</div>
-                            </div>
-                        </div>
-                    )}
+                    {/* APPZ: Remi removed from here to be placed next to fretboard */}
 
 
-
-                    {/* --- REMI CHARACTER & CHAT --- */}
-                    {phase !== 'briefing' && phase !== 'complete' && (
-                        <>
-                            {/* DESKTOP REMI (with Chat) */}
-                            <div className="hidden md:flex absolute -right-12 -top-32 flex-col items-center z-50 w-64 pointer-events-none transition-all duration-500">
-                                <img
-                                    src={getRemiState()}
-                                    alt="Remi"
-                                    className="w-40 h-40 object-contain animate-bounce-slow drop-shadow-2xl z-20"
-                                />
-                                <div className="bg-white/95 backdrop-blur-sm text-slate-900 px-6 py-4 rounded-[2rem] rounded-tr-none shadow-xl animate-in slide-in-from-bottom-2 border-2 border-indigo-500/30 relative -mt-4 mr-12 w-auto min-w-[140px] text-center transform rotate-[-2deg]">
-                                    <div className="text-lg font-bold leading-snug font-hand">
-                                        {teacherMessage}
-                                    </div>
-                                </div>
-                            </div>
-                        </>
-                    )}
-
-                    {/* --- TEACHER LIVE FEEDBACK (Playing Phase) --- */}
-                    {phase === 'playing_sequence' && (
-                        <div className="mb-6 flex flex-col items-center animate-in fade-in zoom-in w-full">
-
-                            <div className="flex gap-4 mb-4">
-                                {/* RHYTHM PREVIEW */}
-                                {lesson.sequence && (lesson.id.includes('riff') || lesson.id.includes('scale')) && (
-                                    <button
-                                        onClick={() => {
-                                            // Play Rhythm Demo
-                                            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                                            let time = ctx.currentTime;
-                                            lesson.sequence.forEach(step => {
-                                                const osc = ctx.createOscillator();
-                                                const gain = ctx.createGain();
-                                                osc.connect(gain);
-                                                gain.connect(ctx.destination);
-
-                                                // Simple pitch mapping (just for distinctness, not actual pitch if lazy)
-                                                // Or use actual freq if we want? Let's use a standard beep.
-                                                // Simple pitch mapping
-                                                osc.frequency.value = getFreq(step.note, step.octave);
-                                                // If we really want to be helpful, map note to freq roughly?
-                                                // Let's stick to rhythm focus: a percussion sound.
-                                                osc.type = 'triangle';
-
-                                                const dur = (step.duration || 1) * 0.4; // scale for speed
-
-                                                osc.start(time);
-                                                osc.stop(time + dur * 0.8); // slight gap
-
-                                                gain.gain.setValueAtTime(0.1, time);
-                                                gain.gain.exponentialRampToValueAtTime(0.001, time + dur * 0.8);
-
-                                                time += dur;
-                                            });
-                                        }}
-                                        className="flex items-center gap-2 bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-300 px-4 py-2 rounded-full text-sm font-bold transition-all border border-indigo-500/30"
-                                    >
-                                        <Play size={16} className="fill-indigo-300" /> Hear Rhythm
-                                    </button>
-                                )}
-
-                                {/* METRONOME TOGGLE */}
-                                {lesson.bpm && (
-                                    <button
-                                        onClick={() => setIsMetronomeOn(p => !p)}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all border ${isMetronomeOn
-                                            ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border-rose-500/30'
-                                            : 'bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700'}`}
-                                    >
-                                        <Activity size={16} className={isMetronomeOn ? 'animate-pulse' : ''} />
-                                        {isMetronomeOn ? `${lesson.bpm} BPM` : 'Metronome'}
-                                    </button>
-                                )}
-                            </div>
-
-                            <div className="flex items-center gap-8 text-2xl font-black text-white">
-                                <div className="flex flex-col items-center">
-                                    <div className="text-xs text-slate-500 font-bold mb-2 tracking-widest">
-                                        NOTE {currentStep + 1} / {lesson.sequence ? lesson.sequence.length : 1}
-                                    </div>
-                                    <span className="text-sm font-medium text-slate-500 uppercase tracking-widest mb-1">Target</span>
-                                    <span className={`text-6xl text-indigo-400 drop-shadow-[0_0_20px_rgba(99,102,241,0.5)] ${hitEffect ? 'scale-150 text-green-400 drop-shadow-[0_0_60px_rgba(74,222,128,1)]' : ''} ${pulse ? 'scale-110 brightness-150' : ''} transition-all duration-200`}>
-                                        {(lesson.sequence ? lesson.sequence[currentStep].note : lesson.targetNote)}
-                                    </span>
-
-                                    {/* Duration / Progress */}
-                                    {lesson.sequence && (
-                                        <div className="flex flex-col items-center mt-4 w-24">
-                                            <span className="text-xs font-bold text-indigo-300 mb-1">
-                                                Hold: {lesson.sequence[currentStep].duration || 1} Beats
-                                            </span>
-                                            <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
-                                                <div
-                                                    className="h-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-75 ease-linear"
-                                                    style={{ width: `${(debugData.matchProgress || 0) * 100}%` }}
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="w-px h-16 bg-slate-700"></div>
-                                <div className="flex flex-col items-center relative">
-                                    <span className="text-sm font-medium text-slate-500 uppercase tracking-widest mb-1">Hearing</span>
-
-                                    <div className="relative flex items-center justify-center">
-                                        {/* Progress Ring */}
-
-
-                                        <span className={`text-6xl drop-shadow-[0_0_20px_rgba(255,255,255,0.2)] z-10 ${debugData.note === (lesson.sequence ? lesson.sequence[currentStep].note : lesson.targetNote) ? 'text-green-400' : 'text-slate-200'}`}>
-                                            {debugData.note || '--'}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="mt-6 text-indigo-300 font-medium text-lg">
-                                {getTeacherMessage()}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* --- TEACHER VISION FEEDBACK (Vision Phase) --- */}
-                    {phase === 'playing_vision' && (
-                        <div className="mb-6 flex flex-col items-center animate-in fade-in zoom-in w-full text-center">
-                            <div className="flex items-center gap-2 mb-4 text-indigo-400 animate-pulse font-bold tracking-widest uppercase text-sm">
-                                <Eye className="w-4 h-4" /> Watching Hand...
-                            </div>
-                            <div className="text-4xl font-black text-white drop-shadow-[0_0_20px_rgba(99,102,241,0.5)] mb-2">
-                                {lesson.title}
-                            </div>
-                            <div className="text-indigo-200 text-lg font-medium max-w-lg">
-                                {feedback?.message || "Show me your hand position..."}
-                            </div>
-                        </div>
-                    )}
-
-
-                    <div className="mb-8 w-full max-w-4xl transform hover:scale-[1.02] transition-transform relative">
-                        {/* MOBILE REMI (Sits on top - Main View) */}
-                        {phase !== 'briefing' && phase !== 'complete' && (
-                            <div className="md:hidden absolute -top-16 right-0 z-50 pointer-events-none pr-4">
-                                <img
-                                    src={getRemiState()}
-                                    alt="Remi"
-                                    className="w-24 h-24 object-contain animate-bounce-slow drop-shadow-lg"
-                                />
-                            </div>
-                        )}
-                        <FretboardDiagram
-                            activeString={lesson.id.startsWith('tune') ? lesson.targetNote + lesson.targetOctave : null}
-                            highlightFret={currentTarget.fret}
-                            highlightNotes={
-                                lesson.ghost === 'chord_em' && lesson.chordData
-                                    ? lesson.chordData.fingers.map(f => ({ string: f.string, fret: f.fret, disp: f.finger }))
-                                    : (lesson.sequence || lesson.type === 'note')
-                                        ? [{ string: currentTarget.string, fret: currentTarget.fret, disp: currentTarget.disp || currentTarget.note }]
-                                        : null
+                    {/* FEEDBACK PILL */}
+                    {(feedback || warning) && (
+                        <div className={`
+                            mb-6 px-6 py-2 rounded-full border shadow-2xl backdrop-blur-md flex items-center gap-3 animate-in slide-in-from-top-4 fade-in duration-300 pointer-events-auto
+                            ${feedback?.success
+                                ? 'bg-green-500/10 border-green-500/40 text-green-400 shadow-[0_0_30px_rgba(34,197,94,0.2)]'
+                                : warning
+                                    ? 'bg-red-500/10 border-red-500/40 text-red-400 shadow-[0_0_30px_rgba(244,63,94,0.2)]'
+                                    : 'bg-indigo-500/10 border-indigo-500/40 text-indigo-300'
                             }
-                            playedFret={debugData.fret}
-                            playedStringIdx={debugData.stringIdx}
-                            totalFrets={window.innerWidth < 768 ? 5 : 12}
+                        `}>
+                            {feedback?.success ? <CheckCircle size={18} className="fill-current" /> : <AlertTriangle size={18} className="fill-current" />}
+                            <span className="font-bold text-base tracking-wide">
+                                {feedback?.message || warning}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* MAIN INSTRUCTION TEXT - CLEAN STYLE */}
+                    {phase === 'playing_vision' ? (
+                        <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-lg text-center max-w-4xl mx-auto px-6 leading-tight break-words py-2 font-display tracking-tight">
+                            {lesson.title}
+                        </h1>
+                    ) : (
+                        <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-lg text-center max-w-4xl mx-auto px-6 leading-tight break-words py-2 font-display tracking-tight">
+                            {getTeacherMessage()}
+                        </h1>
+                    )}
+
+                    {/* Sub-instruction */}
+                    {phase === 'playing_vision' && (
+                        <p className="mt-2 text-lg text-indigo-200 font-medium tracking-wide animate-pulse px-4 text-center">
+                            Show me your hand...
+                        </p>
+                    )}
+                </div>
+
+
+                {/* --- 2. HERO VISUALIZER (Center) --- */}
+                {/* Fixed height control to prevent "Huge" look */}
+                <div className="relative w-full max-w-6xl h-64 md:h-80 flex items-center justify-center p-4">
+
+                    {/* APPZ: Remi placed to the RIGHT of the fretboard */}
+                    <div className="absolute -right-4 md:-right-24 top-1/2 -translate-y-1/2 w-24 h-24 md:w-32 md:h-32 animate-bounce-slow pointer-events-auto z-50 hidden md:block opacity-90 hover:opacity-100 transition-opacity">
+                        <img
+                            src={getRemiState()}
+                            alt="Remi"
+                            className="w-full h-full object-contain drop-shadow-xl"
                         />
                     </div>
 
-                    <div className="text-center space-y-4 max-w-md">
-                        {phase !== 'playing_sequence' && phase !== 'playing_vision' && (
-                            <div className="text-slate-400 text-lg font-light leading-relaxed">
-                                {lesson.briefing}
+                    {/* Count Down Overlay */}
+                    {phase === 'countdown' && (
+                        <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
+                            <div className="text-[12rem] font-black text-white drop-shadow-[0_0_60px_rgba(255,255,255,0.5)] animate-in zoom-in duration-300">
+                                {countdown}
                             </div>
-                        )}
-                        {phase === 'analyzing' && (
-                            <div className="inline-flex items-center gap-2 text-indigo-400 animate-pulse font-bold tracking-widest uppercase text-sm">
-                                <Loader className="w-4 h-4 animate-spin" /> Analyzing Snapshot...
+                        </div>
+                    )}
+
+                    {/* Fretboard Container */}
+                    <div className={`
+                        w-full h-full flex flex-col transition-all duration-500
+                        ${phase === 'countdown' ? 'opacity-20 scale-90 blur-sm' : 'opacity-100 scale-100'}
+                        ${feedback?.success ? 'scale-105 brightness-110 drop-shadow-[0_0_50px_rgba(74,222,128,0.3)]' : ''}
+                    `}>
+                        <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-6 backdrop-blur-sm shadow-2xl relative overflow-hidden group w-full h-full flex flex-col justify-center">
+                            {/* Glass Shine */}
+                            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+
+                            <div className="flex-1 w-full relative">
+                                <FretboardDiagram
+                                    activeString={lesson.id.startsWith('tune') ? lesson.targetNote + lesson.targetOctave : null}
+                                    highlightFret={currentTarget.fret}
+                                    highlightNotes={
+                                        lesson.ghost === 'chord_em' && lesson.chordData
+                                            ? lesson.chordData.fingers.map(f => ({ string: f.string, fret: f.fret, disp: f.finger }))
+                                            : (lesson.sequence || lesson.type === 'note')
+                                                ? [{ string: currentTarget.string, fret: currentTarget.fret, disp: currentTarget.disp || currentTarget.note }]
+                                                : null
+                                    }
+                                    playedFret={debugData.fret}
+                                    playedStringIdx={debugData.stringIdx}
+                                    totalFrets={window.innerWidth < 768 ? 5 : 12}
+                                    className="w-full h-full"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Audio Waveform / Visualizer Bar below Fretboard */}
+                        {phase === 'playing_sequence' && (
+                            <div className="mt-8 flex flex-col items-center">
+                                {/* Note Indicator */}
+                                <div className="text-6xl font-black text-white mb-2 tracking-tighter drop-shadow-lg">
+                                    {debugData.note || '--'}
+                                </div>
+                                <div className="text-xs text-indigo-400 font-bold tracking-[0.3em] uppercase mb-4">Hearing</div>
+
+                                {/* Volume Bar */}
+                                <div className="w-64 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.8)] transition-all duration-75"
+                                        style={{ width: `${Math.min(100, (parseFloat(debugData.vol) || 0) * 800)}%` }}
+                                    ></div>
+                                </div>
                             </div>
                         )}
                     </div>
                 </div>
 
-                {/* CONTROLS (Bottom Center) */}
-                <div className="relative mt-8 md:absolute md:bottom-12 md:mt-0 left-0 md:left-1/2 md:transform md:-translate-x-1/2 z-30 w-full max-w-sm px-6 md:px-0">
-                    {phase !== 'analyzing' && phase !== 'countdown' && phase !== 'complete' && phase !== 'playing_sequence' && phase !== 'playing_vision' && (
+                {/* --- 3. ACTION ZONE (Bottom Center - Floating) --- */}
+                {/* Only for manual prompts like "I'm Ready" */}
+                {(phase === 'instruct' || (phase === 'demo' && !lesson.sequence)) && (
+                    <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50 w-full flex justify-center px-4">
                         <Button
                             onClick={handleStartAnalysis}
                             size="xl"
-                            className="w-full text-xl shadow-[0_0_30px_rgba(99,102,241,0.3)] hover:shadow-[0_0_50px_rgba(99,102,241,0.5)] transition-shadow"
-                            variant="primary"
+                            className="bg-white text-slate-950 hover:bg-indigo-50 shadow-[0_0_40px_rgba(255,255,255,0.3)] border-none text-xl px-12 py-6 rounded-full w-full max-w-sm"
                         >
-                            {feedback && !feedback.success ? 'Try Again' : 'Ready'}
+                            <Play className="w-6 h-6 mr-2 fill-slate-950" /> I'm Ready
                         </Button>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
 
-
-            {/* --- PIP VIDEO (Bottom Right) --- */}
+            {/* --- PIP VIDEO (Bottom Right - Unchanged) --- */}
             <div
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 style={videoPos ? { left: videoPos.x, top: videoPos.y, bottom: 'auto', right: 'auto' } : {}}
-                className="absolute bottom-4 right-4 md:bottom-8 md:right-8 z-40 w-40 md:w-72 aspect-video bg-black rounded-2xl overflow-hidden border-2 border-slate-700/50 shadow-2xl group transition-transform active:scale-105 hover:border-indigo-500/50 touch-none"
+                className="absolute bottom-6 right-6 z-50 w-48 md:w-80 aspect-video bg-black rounded-2xl overflow-hidden border border-white/10 shadow-2xl ring-1 ring-black/50 group hover:scale-[1.02] transition-transform"
             >
-                <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover scale-x-[-1]" />
-                <canvas ref={debugCanvasRef} className={`absolute inset-0 w-full h-full scale-x-[-1] pointer-events-none opacity-60`} width={640} height={480} />
+                <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover scale-x-[-1] opacity-80 group-hover:opacity-100 transition-opacity" />
+                <canvas ref={debugCanvasRef} className="absolute inset-0 w-full h-full scale-x-[-1] opacity-60 pointer-events-none" width={640} height={480} />
 
-                {/* Mini Status Layer */}
-                <div className="absolute bg-gradient-to-t from-black/80 to-transparent bottom-0 left-0 right-0 p-2 flex justify-between items-end">
-                    <div className="text-[8px] md:text-[10px] uppercase font-bold text-slate-400">Camera</div>
-                    <button onClick={(e) => { e.stopPropagation(); setSettings(s => ({ ...s, isLefty: !s.isLefty })); }} className="text-[8px] md:text-[10px] bg-slate-800/80 px-2 py-1 rounded text-white hover:bg-indigo-600 transition-colors">
-                        {settings.isLefty ? 'Lefty' : 'Righty'}
+                {/* PIP Overlay Information */}
+                <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent flex justify-between items-end">
+                    <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${isListeningRef.current ? 'bg-red-500 animate-pulse' : 'bg-slate-500'}`}></div>
+                        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Cam</span>
+                    </div>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setSettings(s => ({ ...s, isLefty: !s.isLefty })); }}
+                        className="text-[10px] font-bold text-white bg-white/10 hover:bg-white/20 px-2 py-1 rounded backdrop-blur-md transition-colors"
+                    >
+                        {settings.isLefty ? 'LEFTY' : 'RIGHTY'}
                     </button>
-                </div>
-
-                {/* Tracking Status Indicator */}
-                <div className="absolute top-3 left-3 flex gap-1">
-                    <span className={`w-2 h-2 rounded-full ${isListeningRef.current ? 'bg-red-500 animate-pulse shadow-[0_0_10px_red]' : 'bg-slate-500'}`}></span>
                 </div>
             </div>
 
-            {/* COUNTDOWN OVERLAY */}
-            {phase === 'countdown' && (
-                <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/20 backdrop-blur-[2px]">
-                    <div className="text-[15rem] font-black text-white drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-bounce">
-                        {countdown}
-                    </div>
-                </div>
-            )}
-
-            {/* SUCCESS / LEVEL COMPLETE MODAL */}
+            {/* --- SUCCESS MODAL (Full Screen Overlay) --- */}
             {(phase === 'complete' || (streak >= REQUIRED_STREAK && phase !== 'instruct')) && (
-                <div className="absolute inset-0 z-[70] flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-500 p-6">
-                    <div className="max-w-md w-full text-center">
-                        <Trophy className="w-32 h-32 text-yellow-400 mb-6 drop-shadow-[0_0_50px_rgba(250,204,21,0.5)] animate-bounce mx-auto" />
-                        <h2 className="text-5xl font-black text-white mb-2 tracking-tight">Level Complete!</h2>
-                        <p className="text-indigo-300 text-xl mb-12">You nailed it. +{lesson.xp} XP</p>
+                <div className="absolute inset-0 z-[100] bg-slate-950/80 backdrop-blur-2xl flex flex-col items-center justify-center animate-in fade-in duration-500">
+                    <div className="relative">
+                        <div className="absolute inset-0 bg-indigo-500 blur-[100px] opacity-20 rounded-full"></div>
+                        <Trophy className="w-40 h-40 text-yellow-400 drop-shadow-[0_0_60px_rgba(250,204,21,0.6)] animate-bounce relative z-10" />
+                    </div>
 
-                        <div className="space-y-4">
-                            <Button
-                                onClick={() => onFinish(lesson.xp, 'next')}
-                                size="xl"
-                                className="w-full text-lg shadow-indigo-500/20"
-                            >
-                                <Play className="w-5 h-5 mr-2 fill-slate-950" /> Next Lesson
-                            </Button>
-                            <Button
-                                onClick={() => onFinish(lesson.xp, 'menu')}
-                                variant="secondary"
-                                size="xl"
-                                className="w-full text-lg"
-                            >
-                                Back to Menu
-                            </Button>
-                        </div>
+                    <h1 className="text-6xl font-black text-white mt-8 mb-2 tracking-tighter">Level Complete</h1>
+                    <p className="text-2xl text-indigo-300 font-medium mb-12">Total Mastery achieved.</p>
+
+                    <div className="flex flex-col gap-4 w-full max-w-sm">
+                        <Button onClick={() => onFinish(lesson.xp, 'next')} size="xl" className="w-full bg-white text-slate-950 hover:bg-slate-200 shadow-xl">
+                            Next Lesson
+                        </Button>
+                        <Button onClick={() => onFinish(lesson.xp, 'menu')} variant="ghost" size="xl" className="w-full text-slate-400 hover:text-white">
+                            Back to Menu
+                        </Button>
                     </div>
                 </div>
             )}

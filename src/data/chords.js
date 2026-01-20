@@ -1,3 +1,10 @@
+// Image References:
+// c_major -> /chords/C-Major-2.jpg
+// d_major -> /chords/D-Major-Chord.jpg
+// g_major -> /chords/G-Major-Chord.jpg
+// em -> /chords/E-Minor-Chord.jpg
+// am -> /chords/A-minor-chord.jpg
+
 export const CHORDS = [
     {
         id: 'c_major',
@@ -5,6 +12,7 @@ export const CHORDS = [
         type: 'Open',
         difficulty: 'Easy',
         description: 'One of the first chords you learn. Bright and happy.',
+        referenceImage: '/chords/C-Major-2.jpg',
         fingers: [
             { string: 5, fret: 3, finger: 3 }, // Ring on A3
             { string: 4, fret: 2, finger: 2 }, // Middle on D2
@@ -31,6 +39,7 @@ export const CHORDS = [
         type: 'Open',
         difficulty: 'Easy',
         description: 'The big chord. Uses all 6 strings.',
+        referenceImage: '/chords/G-Major-Chord.jpg',
         fingers: [
             { string: 6, fret: 3, finger: 2 },
             { string: 5, fret: 2, finger: 1 },
@@ -57,6 +66,7 @@ export const CHORDS = [
         type: 'Open',
         difficulty: 'Medium',
         description: 'Bright and triangle shaped.',
+        referenceImage: '/chords/D-Major-Chord.jpg',
         fingers: [
             { string: 3, fret: 2, finger: 1 },
             { string: 1, fret: 2, finger: 2 },
@@ -70,6 +80,7 @@ export const CHORDS = [
         type: 'Open',
         difficulty: 'Easy',
         description: 'Sad and simple. Only two fingers.',
+        referenceImage: '/chords/E-Minor-Chord.jpg',
         fingers: [
             { string: 5, fret: 2, finger: 2 },
             { string: 4, fret: 2, finger: 3 },
@@ -82,6 +93,7 @@ export const CHORDS = [
         type: 'Open',
         difficulty: 'Easy',
         description: 'Sad version of A Major.',
+        referenceImage: '/chords/A-minor-chord.jpg',
         fingers: [
             { string: 4, fret: 2, finger: 2 },
             { string: 3, fret: 2, finger: 3 },

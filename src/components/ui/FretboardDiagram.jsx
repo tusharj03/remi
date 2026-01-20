@@ -51,7 +51,8 @@ export const FretboardDiagram = ({
     playedStringIdx = null, // [NEW] e.g. 0 (Low E)
     totalFrets = 12, // [NEW] prop to control length
     variant = 'default', // 'default' | 'compact'
-    showFretLabels = false // [NEW] Force show labels even in compact mode
+    showFretLabels = false, // [NEW] Force show labels even in compact mode
+    className = "" // [NEW] Allow overrides
 }) => {
     // Determine active string index (0=High E, 5=Low E)
     // Legacy support
@@ -109,14 +110,16 @@ export const FretboardDiagram = ({
         }
     }
 
-    const containerClass = variant === 'compact'
+    const baseClass = variant === 'compact'
         ? "w-full max-w-4xl mx-auto select-none pl-6"
         : "w-full max-w-4xl mx-auto bg-slate-900 border border-slate-700 rounded-xl p-8 shadow-2xl relative select-none";
+
+    const containerClass = `${baseClass} ${className}`;
 
     return (
         <div className={containerClass}>
             {/* Scroll container for smaller screens if needed, though we aim for fit */}
-            <div className="relative h-full min-h-[120px] w-full select-none">
+            <div className="relative h-full w-full select-none flex flex-col justify-between">
 
                 {/* Nut/Fret Labels Background */}
                 {(variant !== 'compact' || showFretLabels) && (
@@ -153,7 +156,7 @@ export const FretboardDiagram = ({
 
 
                 {/* Strings and Notes Layer */}
-                <div className={`absolute inset-0 flex flex-col justify-between pointer-events-none ${variant === 'compact' ? 'py-2' : 'py-4'}`}>
+                <div className={`absolute inset-0 flex flex-col justify-between pointer-events-none ${variant === 'compact' ? 'py-2 px-1' : 'py-6'}`}>
                     {stringsToRender.map((s, stringIdx) => {
                         // Determine if this string matches the played Audio String
                         // stringIdx here is 0..5 (High..Low) (Wait, map says s is 0..5)
@@ -204,7 +207,7 @@ export const FretboardDiagram = ({
                                         >
                                             {/* WRONG / PLAYED NOTE (Blue/Purple) */}
                                             {isErrorNote && (
-                                                <div className="absolute w-8 h-8 rounded-full bg-indigo-500 border-2 border-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.6)] z-30 animate-pulse pointer-events-none flex items-center justify-center">
+                                                <div className="absolute w-5 h-5 rounded-full bg-indigo-500 border-2 border-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.6)] z-30 animate-pulse pointer-events-none flex items-center justify-center px-1">
                                                     {/* No text, just a dot for "here is where you are" */}
                                                 </div>
                                             )}
@@ -220,10 +223,10 @@ export const FretboardDiagram = ({
                                                     {/* The Note Dot */}
                                                     <div className={`
                                                         absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/20 flex items-center justify-center z-20 transition-all duration-300
-                                                        ${variant === 'compact' ? 'w-5 h-5 text-[10px]' : 'w-8 h-8 text-xs'}
+                                                        ${variant === 'compact' ? 'w-5 h-5 text-[10px]' : 'w-6 h-6 text-xs'}
                                                         ${isCorrectNote
-                                                            ? 'bg-green-500/80 shadow-[0_0_30px_rgba(34,197,94,1)] scale-125 animate-pulse'
-                                                            : 'bg-green-600 shadow-[0_0_20px_rgba(34,197,94,0.6)]'
+                                                            ? 'bg-green-500/80 shadow-[0_0_20px_rgba(34,197,94,0.8)] scale-110 animate-pulse'
+                                                            : 'bg-green-600 shadow-[0_0_15px_rgba(34,197,94,0.4)]'
                                                         }
                                                     `}>
                                                         <span className="text-white font-black">

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, User, Loader, AlertCircle } from 'lucide-react';
+import { X, Mail, Lock, User, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { loginUser, registerUser, signIn } from '@/services/firebase';
+import { loginUser, registerUser, loginAsGuest } from '../../services/firebase';
+import remiHappy from '@/assets/remi/happy.png';
 
 export const AuthOverlay = ({ onClose, onAuthSuccess }) => {
     const [isLogin, setIsLogin] = useState(true);
@@ -22,18 +23,10 @@ export const AuthOverlay = ({ onClose, onAuthSuccess }) => {
             } else {
                 user = await registerUser(email, password);
             }
-            if (user) onAuthSuccess(user);
+            onAuthSuccess(user);
         } catch (err) {
             console.error(err);
-            if (err.code === 'auth/invalid-credential') {
-                setError("Invalid email or password.");
-            } else if (err.code === 'auth/email-already-in-use') {
-                setError("Email is already registered.");
-            } else if (err.code === 'auth/weak-password') {
-                setError("Password should be at least 6 characters.");
-            } else {
-                setError(err.message || "Authentication failed.");
-            }
+            setError(err.message || "Authentication failed");
         } finally {
             setLoading(false);
         }
@@ -42,29 +35,35 @@ export const AuthOverlay = ({ onClose, onAuthSuccess }) => {
     const handleGuest = async () => {
         setLoading(true);
         try {
-            const user = await signIn(); // Anonymous
+            const user = await loginAsGuest();
             onAuthSuccess(user);
-        } catch (e) {
-            setError("Could not sign in as guest.");
+        } catch (err) {
+            console.error(err);
+            setError("Guest login failed");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300">
             <div className="absolute inset-0" onClick={onClose}></div>
-            <div className="relative w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-8 overflow-hidden">
+            <div className="relative w-full max-w-md glass-panel rounded-3xl p-8 overflow-hidden animate-in zoom-in-95 duration-300 ring-1 ring-white/10">
+
+                {/* Background Decor */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 blur-3xl rounded-full pointer-events-none -mr-16 -mt-16"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-cyan-500/20 blur-3xl rounded-full pointer-events-none -ml-16 -mb-16"></div>
+
                 {/* Header */}
-                <div className="text-center mb-8">
-                    <div className="w-20 h-20 bg-slate-800 rounded-2xl mx-auto mb-4 flex items-center justify-center overflow-hidden border border-slate-700 shadow-lg">
-                        <img src="/icon-white.png" alt="Remi" className="w-full h-full object-contain p-2" />
+                <div className="text-center mb-8 relative z-10">
+                    <div className="w-24 h-24 mx-auto mb-4 animate-bounce-slow drop-shadow-2xl">
+                        <img src={remiHappy} alt="Remi" className="w-full h-full object-contain" />
                     </div>
-                    <h2 className="text-3xl font-bold text-white mb-2">
-                        {isLogin ? 'Welcome Back' : 'Join Remi'}
+                    <h2 className="text-3xl font-black text-white mb-2 tracking-tight text-glow">
+                        {isLogin ? 'Welcome Back!' : 'Join the Band'}
                     </h2>
-                    <p className="text-slate-400">
-                        {isLogin ? 'Sign in to continue your progress.' : 'Create an account to save your stats.'}
+                    <p className="text-slate-400 font-medium">
+                        {isLogin ? 'Ready to continue your streak?' : 'Start your journey to mastery.'}
                     </p>
                 </div>
 

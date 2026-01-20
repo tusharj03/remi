@@ -1,40 +1,92 @@
-export const analyzeWithRork = async (base64Image, lesson) => {
+export const analyzeWithRork = async (base64Image, lesson, audioContext = null) => {
     const isPosture = lesson.type === 'posture';
 
     // Prompt Engineering
-    const role = "You are a helpful, encouraging guitar instructor. Your goal is to get the student playing quickly.";
+    const role = "You are a strict, perfectionist guitar instructor. You do not accept sloppy technique.";
+
+    const fingerReqs = lesson.chordData
+        ? lesson.chordData.fingers.map(f => `- Finger ${f.finger} on String ${f.string}, Fret ${f.fret}`).join('\n')
+        : "Standard playing position.";
+
+    const noteReqs = lesson.requiredNotes
+        ? `Required Notes: ${lesson.requiredNotes.join(', ')}`
+        : (lesson.targetNote ? `Target Note: ${lesson.targetNote}` : "");
 
     const criteria = isPosture
-        ? `Check comliance with: "${lesson.briefing}". Key points: ${lesson.prompts.join(', ')}. Identify the single most critical error.`
-        : (lesson.chordData
-            ? `Target Chord: ${lesson.chordData.name}. Required Fingers: ${lesson.chordData.fingers.map(f => `String ${f.string} Fret ${f.fret}`).join(', ')}. Check finger placement. Identify the single most critical error.`
-            : `Check finger placement for ${lesson.title}. Identify the single most critical error.`);
+        ? `Check compliance with: "${lesson.briefing}". Key points: ${lesson.prompts.join(', ')}.`
+        : `Target Chord: ${lesson.title}.\nMANDATORY FINGER POSITIONS:\n${fingerReqs}`;
+
+    // [NEW] Audio Context Injection
+    const audioContextStr = audioContext
+        ? `AUDIO ANALYSIS: The system heard: ${JSON.stringify(audioContext)}.
+           ${noteReqs ? `COMPARE heard notes with ${noteReqs}.` : ""}
+           
+           LOGIC CHECK:
+           - If Visual is PERFECT but Audio is WRONG -> FAIL (Feedback: "Press harder, buzzing/wrong notes")
+           - If Audio is PERFECT but Visual is WRONG -> FAIL (Feedback: "Fix your hand shape")
+           - If Visual is "okay" but not perfect -> FAIL (Feedback: "Be precise. Finger X is wrong.")`
+        : "";
 
     const systemPrompt = `${role} 
-    TASK: Verify student technique for lesson: "${lesson.title}". ${criteria}.
+    TASK: Verify student technique for lesson: "${lesson.title}". 
+    ${criteria}
+    ${lesson.referenceImage ? "COMPARE student's hand (second image) with the REFERENCE (first image)." : ""}
+    ${audioContextStr}
     
     RESPONSE RULES:
-    1. If technique is generally correct (even if not perfect), set "success": true. Do NOT be nitpicky.
-    2. Only if there is a MAJOR error, identify it.
-    3. Construct "feedback" using strictly this format:
-       "[Correction: what is wrong]. [Action: one concrete physical step]. [Brief encouragement: max 4 words]."
-       
-    EXAMPLE FEEDBACK:
-    "Thumb is too high. Drop your wrist to arch fingers. Try again."
-    "Index finger is flat. Curl the knuckle to clear strings. Fix that."
+    1. **CRITICAL PRE-CHECK**: Look for a **Guitar Neck** and a **Human Hand**. IF MISSING -> FAIL.
+    2. **STRICT VISUAL CHECK**: 
+       - Do the fingers EXACTLY match the mandatory positions? 
+       - If ANY finger is on the wrong string or fret -> FAIL.
+       - If the hand is "all over the place" -> FAIL.
+       - If the fingers are not clearly on the correct frets, FAIL.
+    3. **AUDIO SYNC**: Does the audio match the chord? If not -> FAIL.
     
+    Only set "success": true if the technique is TEXTBOOK PERFECT.
+    
+    Construct "feedback" using strictly this format:
+    "[Correction: what is wrong]. [Action: one concrete physical step]. [Brief encouragement: max 4 words]."
+
     Respond STRICTLY JSON: { "success": boolean, "confidence": number, "feedback": "string" }`;
 
+
     try {
+        let userContent = [{ type: 'text', text: "Critique this." }, { type: 'image', image: base64Image }];
+
+        if (lesson.referenceImage) {
+            try {
+                // Fetch image (client side fetch relative to public)
+                const refRes = await fetch(lesson.referenceImage);
+                const refBlob = await refRes.blob();
+
+                // Convert blob to base64
+                const reader = new FileReader();
+                await new Promise((resolve, reject) => {
+                    reader.onloadend = resolve;
+                    reader.onerror = reject;
+                    reader.readAsDataURL(refBlob);
+                });
+
+                // reader.result is "data:image/jpeg;base64,..."
+                const refBase64 = reader.result.split(',')[1];
+
+                // Prepend reference image
+                userContent.unshift({ type: 'image', image: refBase64 });
+
+            } catch (err) {
+                console.warn("Failed to load reference image for AI:", err);
+            }
+        }
+
+        const messages = [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userContent }
+        ];
+
         const response = await fetch('https://toolkit.rork.com/text/llm/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: [{ type: 'text', text: "Critique this." }, { type: 'image', image: base64Image }] }
-                ]
-            })
+            body: JSON.stringify({ messages })
         });
 
         if (!response.ok) throw new Error('API Error');

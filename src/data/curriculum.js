@@ -22,7 +22,15 @@ export const LESSONS = [
         type: 'posture',
         ghost: 'default',
         briefing: "Sit on the edge of your chair. Hold the guitar comfortably.",
-        prompts: ["Back straight.", "Shoulders relaxed."]
+        prompts: ["Back straight.", "Shoulders relaxed."],
+        videoGuide: {
+            id: "Kz3ofN38tRA", // Good guitar posture video
+            defaultStart: 45,
+            triggers: {
+                "Wrist": 120, // Specific timestamp for wrist
+                "Shoulder": 60
+            }
+        }
     },
     {
         id: 'tech_thumb',
@@ -35,6 +43,11 @@ export const LESSONS = [
         ghost: 'claw',
         briefing: "Curve your fingers. Use your thumb for support (it's okay if it's hidden behind the neck).",
         prompts: ["Fingers curved.", "Knuckles raised."],
+        videoGuide: {
+            id: "Kz3ofN38tRA",
+            defaultStart: 180,
+            triggers: { "Thumb": 190, "Flat": 210 }
+        }
     },
 
     // --- MODULE 1: TUNING ---
@@ -144,6 +157,7 @@ export const LESSONS = [
         type: 'strum',
         requiredNotes: ['E', 'G', 'B'],
         ghost: 'chord_em',
+        referenceImage: '/chords/E-Minor-Chord.jpg',
         chordData: {
             name: 'Em',
             fingers: [
@@ -152,7 +166,15 @@ export const LESSONS = [
             ]
         },
         briefing: "Place your middle finger on A2 and ring finger on D2. Strum all 6 strings.",
-        prompts: ["Ffingers on A2, D2.", "Strum everything."],
+        prompts: ["Fingers on A2, D2.", "Strum everything."],
+        videoGuide: {
+            id: "F5vAegVODrs", // Marty Music Em
+            defaultStart: 58,
+            triggers: {
+                "Clear": 80,
+                "Buzz": 120
+            }
+        }
     },
     {
         id: 'chord_g',
@@ -164,6 +186,7 @@ export const LESSONS = [
         type: 'strum',
         requiredNotes: ['G', 'B', 'D'],
         ghost: 'chord_em', // Reuse for now or add G specific
+        referenceImage: '/chords/G-Major-Chord.jpg',
         chordData: {
             name: 'G',
             fingers: [
@@ -174,6 +197,14 @@ export const LESSONS = [
         },
         briefing: "This one uses the whole neck. Middle on Low E (3rd fret). Index on A (2nd fret). Ring on High E (3rd fret).",
         prompts: ["Stretch your fingers.", "Strum all 6."],
+        videoGuide: {
+            id: "CgVqX0a49HM", // Marty Music G
+            defaultStart: 120,
+            triggers: {
+                "Stretch": 150,
+                "Mute": 180
+            }
+        }
     },
     {
         id: 'chord_c',
@@ -185,6 +216,7 @@ export const LESSONS = [
         type: 'strum',
         requiredNotes: ['C', 'E', 'G'],
         ghost: 'chord_em',
+        referenceImage: '/chords/C-Major-2.jpg',
         chordData: {
             name: 'C',
             fingers: [
@@ -194,7 +226,12 @@ export const LESSONS = [
             ]
         },
         briefing: "Standard C Major. Ring on A3, Middle on D2, Index on B1. Don't play the Low E.",
-        prompts: ["Don't Play Low E", "Arch fingers."]
+        prompts: ["Don't Play Low E", "Arch fingers."],
+        videoGuide: {
+            id: "tJz2g1p4Hjg", // JustinGuitar C
+            defaultStart: 60,
+            triggers: { "Thumb": 90, "Arch": 110 }
+        }
     },
     {
         id: 'chord_d',
@@ -206,6 +243,7 @@ export const LESSONS = [
         type: 'strum',
         requiredNotes: ['D', 'F#', 'A'],
         ghost: 'chord_em',
+        referenceImage: '/chords/D-Major-Chord.jpg',
         chordData: {
             name: 'D',
             fingers: [
@@ -215,7 +253,12 @@ export const LESSONS = [
             ]
         },
         briefing: "Make a triangle. Index G2, Ring B3, Middle E2. Strum bottom 4 strings.",
-        prompts: ["Strum 4 strings only."]
+        prompts: ["Strum 4 strings only."],
+        videoGuide: {
+            id: "Kz3ofN38tRA",
+            defaultStart: 200,
+            triggers: {}
+        }
     },
     {
         id: 'chord_am',
@@ -227,6 +270,7 @@ export const LESSONS = [
         type: 'strum',
         requiredNotes: ['A', 'C', 'E'],
         ghost: 'chord_em',
+        referenceImage: '/chords/A-minor-chord.jpg',
         chordData: {
             name: 'Am',
             fingers: [

@@ -72,6 +72,10 @@ export const logoutUser = async () => {
     return await signOut(auth);
 };
 
+export const loginAsGuest = async () => {
+    return await signIn(null);
+};
+
 // --- Firestore Helpers (With Local Fallback) ---
 export const subscribeToUserProgress = (userId, callback) => {
     // Offline / Fallback
