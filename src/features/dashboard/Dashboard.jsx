@@ -7,131 +7,175 @@ import { RemiCompanion } from '@/components/ui/RemiCompanion';
 export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenChords, onOpenProfile, unlockAll, onAuth }) => {
     const totalXP = progress?.xp || 0;
     const completedIds = progress?.completedLessons || [];
+    const isActiveUser = user && !user.isAnonymous;
 
     const isLessonLocked = (lesson) => {
         if (unlockAll) return false;
         const index = LESSONS.findIndex(l => l.id === lesson.id);
         if (index === 0) return false;
         const prevId = LESSONS[index - 1].id;
-        const isUnlocked = completedIds.includes(prevId);
-        // console.log(`Lesson ${lesson.id}: Index ${index}, Prev ${prevId}, Unlocked? ${isUnlocked}, CompletedIds:`, completedIds);
-        return !isUnlocked;
+        return !completedIds.includes(prevId);
     };
 
     const isLessonCompleted = (lesson) => completedIds.includes(lesson.id);
 
+    // Find current active module
+    const nextLesson = LESSONS.find(l => !completedIds.includes(l.id)) || LESSONS[0];
+    const activeModuleId = nextLesson.moduleId;
+
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 pb-24 md:pb-8 relative overflow-hidden">
+        <div className="min-h-screen bg-slate-950 text-slate-100 pb-24 md:pb-12 relative overflow-hidden">
             {/* Background Effects */}
-            <div className="absolute top-0 left-0 w-full h-96 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-slate-950 to-slate-950 pointer-events-none" />
+            <div className="absolute top-0 left-0 right-0 h-[500px] bg-gradient-to-b from-indigo-900/20 to-slate-950 pointer-events-none" />
 
-            {/* Header */}
-            <div className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex justify-between items-center">
-                <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center border border-slate-800">
-                        <Flame size={20} className="text-orange-500 fill-orange-500/20" />
-                    </div>
+            <div className="max-w-7xl mx-auto px-6 pt-8 grid grid-cols-1 lg:grid-cols-12 gap-12">
+
+                {/* --- MAIN CURRICULUM (Left Col) --- */}
+                <div className="lg:col-span-8 flex flex-col gap-8">
+
+                    {/* Header */}
                     <div>
-                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Streak</div>
-                        <div className="font-bold text-white leading-none">{progress?.streak || 1} Days</div>
-                    </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                    <div className="flex items-center bg-slate-900/50 px-4 py-2 rounded-full border border-white/5 backdrop-blur-md">
-                        <Trophy size={16} className="text-yellow-400 mr-2" />
-                        <span className="font-mono font-bold text-sm bg-gradient-to-r from-yellow-200 to-yellow-500 bg-clip-text text-transparent">
-                            {totalXP.toLocaleString()} XP
-                        </span>
+                        <h1 className="text-4xl font-black text-white mb-2 tracking-tight">Learning Path</h1>
+                        <p className="text-slate-400">Master the guitar, one step at a time.</p>
                     </div>
 
+                    {/* Modules Vertical List */}
+                    <div className="flex flex-col gap-6 relative">
+                        {/* Connecting Line */}
+                        <div className="absolute left-8 top-8 bottom-8 w-1 bg-slate-800/50 rounded-full hidden md:block"></div>
 
+                        {MODULES.map((mod, modIdx) => {
+                            const modLessons = LESSONS.filter(l => l.moduleId === mod.id);
+                            const isCurrentModule = mod.id === activeModuleId;
+                            const isLockedModule = !isCurrentModule && modLessons.every(l => isLessonLocked(l)) && !completedIds.includes(modLessons[0].id); // Simplified module lock
 
-                    <button
-                        onClick={onOpenProfile}
-                        className="w-10 h-10 rounded-full bg-slate-900/50 border border-white/10 flex items-center justify-center hover:bg-slate-800 transition-colors"
-                    >
-                        <User size={20} className="text-slate-400" />
-                    </button>
-                </div>
-            </div>
+                            return (
+                                <div key={mod.id} className={`relative pl-0 md:pl-20 transition-opacity duration-500 ${isLockedModule ? 'opacity-50 grayscale' : 'opacity-100'}`}>
 
-            {/* --- HERO SECTION --- */}
-            <div
-                onClick={() => {
-                    const nextLesson = LESSONS.find(l => !completedIds.includes(l.id)) || LESSONS[0];
-                    onSelectLesson(nextLesson);
-                }}
-                className="relative h-64 mx-6 mt-6 rounded-3xl overflow-hidden shadow-2xl group cursor-pointer transition-transform hover:scale-[1.02] duration-500"
-            >
-                <img src="/hero-guitar.jpg" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-500" alt="Hero" />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
-                <div className="absolute bottom-6 left-6">
-                    <div className="bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full text-xs font-bold inline-block mb-2 backdrop-blur-md border border-indigo-500/30">
-                        CONTINUE LEARNING
+                                    {/* Timeline Node (Desktop) */}
+                                    <div className={`hidden md:flex absolute left-4 w-9 h-9 -ml-px items-center justify-center rounded-full border-4 z-10 
+                                        ${isCurrentModule
+                                            ? 'bg-indigo-500 border-slate-950 shadow-[0_0_20px_rgba(99,102,241,0.5)]'
+                                            : isLockedModule ? 'bg-slate-800 border-slate-950' : 'bg-slate-900 border-indigo-500/30'
+                                        }
+                                    `}>
+                                        {isCurrentModule && <div className="w-3 h-3 bg-white rounded-full animate-pulse" />}
+                                    </div>
+
+                                    {/* Module Card */}
+                                    <div className="bg-slate-900/50 glass-panel border border-white/5 rounded-3xl overflow-hidden">
+                                        {/* Module Header */}
+                                        <div className={`p-6 bg-gradient-to-r ${mod.color.replace('from-', 'from-white/5 ').replace('to-', 'to-transparent ')}/10 border-b border-white/5`}>
+                                            <h3 className="text-xl font-bold text-white mb-1">{mod.title}</h3>
+                                            <p className="text-sm text-slate-400">{modLessons.length} Lessons</p>
+                                        </div>
+
+                                        {/* Lessons List */}
+                                        <div className="divide-y divide-white/5">
+                                            {modLessons.map((lesson, idx) => {
+                                                const locked = isLessonLocked(lesson);
+                                                const completed = isLessonCompleted(lesson);
+                                                const isNext = lesson.id === nextLesson.id;
+
+                                                return (
+                                                    <button
+                                                        key={lesson.id}
+                                                        disabled={locked}
+                                                        onClick={() => onSelectLesson(lesson)}
+                                                        className={`w-full flex items-center gap-4 p-4 text-left transition-all hover:bg-white/5
+                                                            ${isNext ? 'bg-indigo-500/10' : ''}
+                                                            ${locked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}
+                                                        `}
+                                                    >
+                                                        {/* Status Icon */}
+                                                        <div className={`
+                                                            w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
+                                                            ${completed ? 'bg-green-500 text-slate-900' :
+                                                                isNext ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/40' :
+                                                                    'bg-slate-800 text-slate-500'}
+                                                        `}>
+                                                            {completed ? <CheckCircle size={20} /> :
+                                                                locked ? <Lock size={16} /> :
+                                                                    <Play size={18} fill="currentColor" className="ml-0.5" />}
+                                                        </div>
+
+                                                        <div className="flex-1">
+                                                            <h4 className={`font-bold ${completed || isNext ? 'text-white' : 'text-slate-400'}`}>
+                                                                {lesson.title}
+                                                            </h4>
+                                                            <p className="text-xs text-slate-500 line-clamp-1">{lesson.description}</p>
+                                                        </div>
+
+                                                        {isNext && (
+                                                            <div className="px-3 py-1 rounded-full bg-indigo-500 text-white text-xs font-bold shadow-lg animate-pulse-slow">
+                                                                START
+                                                            </div>
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
-                    <h2 className="text-3xl font-black text-white mb-1">Module 1: Foundations</h2>
-                    <p className="text-slate-300 text-sm">You are 80% of the way to the next level.</p>
                 </div>
-                <div className="absolute right-6 bottom-6 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform text-slate-900">
-                    <Play fill="currentColor" size={20} className="ml-1" />
-                </div>
-            </div>
 
-            {/* --- MODULES (Horizontal Scroll) --- */}
-            <div className="mt-8 pl-6 pb-12">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                    <BookOpen size={18} className="text-indigo-400" /> Your Path
-                </h3>
+                {/* --- RIGHT SIDEBAR (Widgets) --- */}
+                <div className="lg:col-span-4 flex flex-col gap-6">
 
-                <div className="flex gap-6 overflow-x-auto pb-8 snap-x snap-mandatory no-scrollbar pr-6">
-                    {MODULES.map((mod) => (
-                        <div
-                            key={mod.id}
-                            className="snap-center relative flex-shrink-0 w-80 h-96 rounded-3xl overflow-hidden glass-panel border border-white/5 group hover:border-indigo-500/50 transition-all duration-500"
-                        >
-                            {/* Background Image / Gradient */}
-                            <div className={`absolute inset-0 bg-gradient-to-br ${mod.locked ? 'from-slate-800 to-slate-900' : 'from-indigo-900/40 to-slate-900'} transition-colors duration-500`}></div>
-
-                            <div className="relative p-6 h-full flex flex-col z-10">
-                                {/* Removed ID span as requested */}
-                                <h4 className={`text-2xl font-bold mb-2 min-h-[4rem] flex items-center ${mod.locked ? 'text-slate-600' : 'text-white'}`}>{mod.title}</h4>
-                                <p className="text-sm text-slate-400 mb-6 line-clamp-2">{mod.description}</p>
-
-                                {/* Lessons List */}
-                                <div className="space-y-3 flex-1 overflow-y-auto no-scrollbar mask-gradient-b">
-                                    {LESSONS.filter(l => l.moduleId === mod.id).map((lesson, idx) => {
-                                        const isLocked = isLessonLocked(lesson);
-                                        const isCompleted = progress?.completed?.includes(lesson.id);
-
-                                        return (
-                                            <button
-                                                key={lesson.id}
-                                                disabled={isLocked}
-                                                onClick={() => onSelectLesson(lesson)}
-                                                className={`
-                                                    w-full flex items-center gap-4 p-3 rounded-xl text-left transition-all border
-                                                    ${isCompleted
-                                                        ? 'bg-green-500/10 border-green-500/20 text-green-400'
-                                                        : isLocked
-                                                            ? 'bg-slate-800/30 border-transparent text-slate-600'
-                                                            : 'bg-white/5 border-white/5 hover:bg-white/10 text-white'
-                                                    }
-                                                `}
-                                            >
-                                                <div className={`
-                                                    w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
-                                                    ${isCompleted ? 'bg-green-500 text-slate-900' : 'bg-slate-800'}
-                                                `}>
-                                                    {isCompleted ? <CheckCircle size={14} /> : isLocked ? <Lock size={12} /> : (idx + 1)}
-                                                </div>
-                                                <span className="font-bold text-sm truncate">{lesson.title}</span>
+                    {/* User Profile Card */}
+                    <div className="bg-slate-900/50 glass-panel border border-white/5 rounded-3xl p-6 sticky top-24">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-3">
+                                <button onClick={onOpenProfile} className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 p-[2px] transition-transform hover:scale-105">
+                                    <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden">
+                                        {user?.photoURL ? <img src={user.photoURL} alt="User" /> : <User size={24} className="text-white" />}
+                                    </div>
+                                </button>
+                                <div>
+                                    <div className="font-bold text-white text-lg leading-tight flex items-center gap-2">
+                                        {user?.isAnonymous ? 'Guest' : (user?.displayName || 'Musician')}
+                                        {user?.isAnonymous && (
+                                            <button onClick={onAuth} className="text-xs text-indigo-400 font-bold hover:underline">
+                                                (Sign In)
                                             </button>
-                                        )
-                                    })}
+                                        )}
+                                    </div>
+                                    <div className="text-xs text-slate-400 font-medium">Level 1 Rookie</div>
                                 </div>
                             </div>
+                            <button onClick={onOpenProfile} className="text-slate-400 hover:text-white transition-colors">
+                                <Settings size={20} />
+                            </button>
                         </div>
-                    ))}
+
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-2 gap-3 mb-6">
+                            <div className="bg-slate-800/50 rounded-2xl p-4 border border-white/5 flex flex-col items-center">
+                                <Flame size={24} className="text-orange-500 mb-2" />
+                                <div className="text-2xl font-black text-white">{progress?.streak || 1}</div>
+                                <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Day Streak</div>
+                            </div>
+                            <div className="bg-slate-800/50 rounded-2xl p-4 border border-white/5 flex flex-col items-center">
+                                <Trophy size={24} className="text-yellow-400 mb-2" />
+                                <div className="text-2xl font-black text-white">{totalXP.toLocaleString()}</div>
+                                <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Total XP</div>
+                            </div>
+                        </div>
+
+                        {/* Next Up (Mini) */}
+                        <div className="bg-indigo-600 rounded-2xl p-5 shadow-lg shadow-indigo-900/20 relative overflow-hidden group cursor-pointer" onClick={() => onSelectLesson(nextLesson)}>
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none"></div>
+                            <h4 className="text-indigo-100 text-xs font-bold uppercase tracking-wider mb-1">Up Next</h4>
+                            <h3 className="text-white font-bold text-lg mb-2 line-clamp-1">{nextLesson.title}</h3>
+                            <div className="flex items-center text-indigo-100 text-sm font-medium">
+                                <Play size={16} fill="currentColor" className="mr-2" />
+                                Continue Path
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

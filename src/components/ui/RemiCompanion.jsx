@@ -31,7 +31,7 @@ export const RemiCompanion = () => {
     };
 
     return (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
+        <div className="fixed bottom-6 right-24 z-50 flex flex-col items-end pointer-events-none">
             {/* Bubble */}
             {message && (
                 <div className="bg-white text-slate-900 px-6 py-3 rounded-2xl rounded-br-none shadow-xl mb-2 mr-12 animate-in slide-in-from-bottom-2 duration-300 font-bold transform rotate-[-2deg] border-2 border-indigo-500/20">
