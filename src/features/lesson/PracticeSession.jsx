@@ -704,7 +704,7 @@ export const PracticeSession = ({ lesson, onFinish }) => {
 
                 {/* --- 2. HERO VISUALIZER (Center) --- */}
                 {/* Fixed height control to prevent "Huge" look */}
-                <div className="relative w-full max-w-6xl h-64 md:h-80 flex items-center justify-center p-4">
+                <div className="relative w-full max-w-6xl min-h-[22rem] md:h-80 flex items-center justify-center p-4">
 
                     {/* APPZ: Remi placed to the RIGHT of the fretboard */}
                     <div className="absolute -right-4 md:-right-24 top-1/2 -translate-y-1/2 w-24 h-24 md:w-32 md:h-32 animate-bounce-slow pointer-events-auto z-50 hidden md:block opacity-90 hover:opacity-100 transition-opacity">

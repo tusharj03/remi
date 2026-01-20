@@ -179,7 +179,7 @@ export const FretboardDiagram = ({
                                 />
 
                                 {/* String Name Label (Left Side) - Adjusted for compact mode */}
-                                <span className={`absolute top-1/2 -translate-y-1/2 text-sm text-slate-500 font-bold w-4 text-center ${variant === 'compact' ? '-left-5 text-[10px]' : '-left-8'}`}>
+                                <span className={`absolute top-1/2 -translate-y-1/2 text-sm text-slate-500 font-bold w-4 text-center ${variant === 'compact' ? '-left-5 text-[10px]' : '-left-6'}`}>
                                     {['e', 'B', 'G', 'D', 'A', 'E'][s]}
                                 </span>
 

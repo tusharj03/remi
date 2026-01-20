@@ -21,7 +21,7 @@ export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenC
     const isLessonCompleted = (lesson) => completedIds.includes(lesson.id);
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 pb-24 relative overflow-hidden">
+        <div className="min-h-screen bg-slate-950 text-slate-100 pb-24 md:pb-8 relative overflow-hidden">
             {/* Background Effects */}
             <div className="absolute top-0 left-0 w-full h-96 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-slate-950 to-slate-950 pointer-events-none" />
 
@@ -100,7 +100,7 @@ export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenC
                                 {/* Lessons List */}
                                 <div className="space-y-3 flex-1 overflow-y-auto no-scrollbar mask-gradient-b">
                                     {LESSONS.filter(l => l.moduleId === mod.id).map((lesson, idx) => {
-                                        const isLocked = !unlockAll && ((idx > 0 && !progress?.completed?.includes(LESSONS.find(prev => prev.moduleId === mod.id && LESSONS.indexOf(prev) === LESSONS.indexOf(lesson) - 1)?.id)) || mod.locked);
+                                        const isLocked = isLessonLocked(lesson);
                                         const isCompleted = progress?.completed?.includes(lesson.id);
 
                                         return (
@@ -134,9 +134,6 @@ export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenC
                     ))}
                 </div>
             </div>
-
-            {/* Footer Spacer */}
-            <div className="h-24"></div>
 
             <RemiCompanion />
         </div>
