@@ -31,7 +31,7 @@ export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenC
             <div className="max-w-7xl mx-auto px-6 pt-8 grid grid-cols-1 lg:grid-cols-12 gap-12">
 
                 {/* --- MAIN CURRICULUM (Left Col) --- */}
-                <div className="lg:col-span-8 flex flex-col gap-8">
+                <div className="lg:col-span-8 flex flex-col gap-8 order-2 lg:order-1">
 
                     {/* Header */}
                     <div>
@@ -123,7 +123,7 @@ export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenC
                 </div>
 
                 {/* --- RIGHT SIDEBAR (Widgets) --- */}
-                <div className="lg:col-span-4 flex flex-col gap-6">
+                <div className="lg:col-span-4 flex flex-col gap-6 order-1 lg:order-2">
 
                     {/* User Profile Card */}
                     <div className="bg-slate-900/50 glass-panel border border-white/5 rounded-3xl p-6 sticky top-24">
@@ -197,7 +197,9 @@ export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenC
                 </div>
             </div>
 
-            <RemiCompanion />
+            <div className="hidden md:block">
+                <RemiCompanion />
+            </div>
         </div>
     );
 };

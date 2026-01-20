@@ -288,7 +288,7 @@ export const JamSession = ({ onBack }) => {
                         </div>
 
                         {/* 3. User Feedback (The "Jam" Part) */}
-                        <div className="w-full max-w-5xl flex-1 min-h-[300px] flex flex-col md:flex-row gap-8">
+                        <div className="w-full max-w-5xl flex-1 min-h-[380px] flex flex-col md:flex-row gap-8">
 
                             {/* Fretboard Side */}
                             <div className="flex-1 bg-slate-900/40 rounded-3xl border border-white/5 p-6 flex flex-col">
@@ -327,12 +327,7 @@ export const JamSession = ({ onBack }) => {
                                         ]}
                                     />
 
-                                    {/* Big Note Display */}
-                                    <div className="absolute top-4 right-4 text-right pointer-events-none">
-                                        <div className="text-6xl font-black text-white/10 tracking-tighter">
-                                            {userAudio.note}
-                                        </div>
-                                    </div>
+
                                 </div>
                             </div>
                         </div>
