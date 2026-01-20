@@ -1,10 +1,10 @@
 import React from 'react';
-import { Trophy, Flame, Music, Settings, ArrowRight, Lock, CheckCircle, Play, BookOpen, User } from 'lucide-react';
+import { Trophy, Flame, Music, Settings, ArrowRight, Lock, CheckCircle, Play, BookOpen, User, Upload } from 'lucide-react';
 import { MODULES, LESSONS } from '../../data/curriculum';
 import { Button } from '@/components/ui/Button';
 import { RemiCompanion } from '@/components/ui/RemiCompanion';
 
-export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenChords, onOpenProfile, unlockAll, onAuth }) => {
+export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenChords, onOpenProfile, onOpenJam, unlockAll, onAuth }) => {
     const totalXP = progress?.xp || 0;
     const completedIds = progress?.completedLessons || [];
     const isActiveUser = user && !user.isAnonymous;
@@ -162,6 +162,24 @@ export const Dashboard = ({ user, progress, onSelectLesson, onOpenTuner, onOpenC
                                 <Trophy size={24} className="text-yellow-400 mb-2" />
                                 <div className="text-2xl font-black text-white">{totalXP.toLocaleString()}</div>
                                 <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Total XP</div>
+                            </div>
+                        </div>
+
+                        {/* Jam Station Card */}
+                        <div
+                            onClick={onOpenJam}
+                            className="bg-gradient-to-br from-fuchsia-600 to-purple-600 rounded-2xl p-5 shadow-lg shadow-purple-900/20 relative overflow-hidden group cursor-pointer mb-6 transform transition-all hover:scale-[1.02]"
+                        >
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none"></div>
+                            <div className="flex items-center justify-between mb-2">
+                                <h4 className="text-purple-100 text-xs font-bold uppercase tracking-wider">New Feature</h4>
+                                <Music className="text-white/80 animate-bounce-slow" size={20} />
+                            </div>
+                            <h3 className="text-white font-bold text-lg mb-2 leading-tight">Upload & Jam</h3>
+                            <p className="text-purple-100/80 text-xs mb-3 font-medium">Play along with your own favorite songs.</p>
+                            <div className="flex items-center text-white text-sm font-bold">
+                                <Upload size={16} className="mr-2" />
+                                Start Session
                             </div>
                         </div>
 

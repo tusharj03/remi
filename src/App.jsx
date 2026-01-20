@@ -3,6 +3,7 @@ import { Loader } from 'lucide-react';
 import { auth, logoutUser, subscribeToUserProgress, updateUserProgress, loginAsGuest } from '@/services/firebase';
 import { Dashboard } from '@/features/dashboard/Dashboard';
 import { PracticeSession } from '@/features/lesson/PracticeSession';
+import { JamSession } from '@/features/jam/JamSession'; // [NEW]
 import { Tuner } from '@/features/tuner/Tuner';
 import { Button } from '@/components/ui/Button';
 import { LESSONS } from '@/data/curriculum';
@@ -147,6 +148,7 @@ function App() {
                         onOpenTuner={() => setView('tuner')}
                         onOpenChords={() => setView('chords')}
                         onOpenProfile={() => setView('profile')}
+                        onOpenJam={() => setView('jam')} // [NEW]
                         unlockAll={unlockAll}
                         onAuth={() => setShowAuth(true)}
                     />
@@ -194,6 +196,11 @@ function App() {
                     lesson={selectedLesson}
                     onFinish={handleLessonFinish}
                 />
+            )}
+
+            {/* Jam Session (Full Screen) */}
+            {view === 'jam' && (
+                <JamSession onBack={() => setView('dashboard')} />
             )}
 
             {/* SHELL VIEWS */}

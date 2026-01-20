@@ -224,9 +224,13 @@ export const FretboardDiagram = ({
                                                     <div className={`
                                                         absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/20 flex items-center justify-center z-20 transition-all duration-300
                                                         ${variant === 'compact' ? 'w-5 h-5 text-[10px]' : 'w-6 h-6 text-xs'}
-                                                        ${isCorrectNote
-                                                            ? 'bg-green-500/80 shadow-[0_0_20px_rgba(34,197,94,0.8)] scale-110 animate-pulse'
-                                                            : 'bg-green-600 shadow-[0_0_15px_rgba(34,197,94,0.4)]'
+                                                        ${activeMarkers[0].color === 'user'
+                                                            ? 'bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.8)] z-50'
+                                                            : activeMarkers[0].ghost
+                                                                ? 'bg-purple-600 border-2 border-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.8)] z-40 animate-pulse'
+                                                                : isCorrectNote
+                                                                    ? 'bg-green-500/80 shadow-[0_0_20px_rgba(34,197,94,0.8)] scale-110 animate-pulse'
+                                                                    : 'bg-green-600 shadow-[0_0_15px_rgba(34,197,94,0.4)]'
                                                         }
                                                     `}>
                                                         <span className="text-white font-black">
