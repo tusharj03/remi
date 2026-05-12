@@ -1,4 +1,7 @@
-import { Hands } from '@mediapipe/hands';
+import * as mpHands from '@mediapipe/hands';
+
+// Production Vite workaround for CommonJS/UMD interop
+const Hands = mpHands.Hands || (mpHands.default && mpHands.default.Hands) || window.Hands;
 
 let hands = null;
 let camera = null;
