@@ -210,6 +210,9 @@ export const PracticeSession = ({ lesson, onFinish }) => {
     const stepRef = useRef(currentStep);
     useEffect(() => { stepRef.current = currentStep; }, [currentStep]);
 
+    const phaseRef = useRef(phase);
+    useEffect(() => { phaseRef.current = phase; }, [phase]);
+
     // If lesson has sequence, target is determined by step
     const currentTarget = lesson.sequence ? lesson.sequence[currentStep] : lesson;
 
@@ -260,7 +263,7 @@ export const PracticeSession = ({ lesson, onFinish }) => {
                     // (Handled in separate useEffect for simple playback)
 
                     // --- CONTINUOUS SEQUENCE LOGIC ---
-                    if (phase === 'playing_sequence') {
+                    if (phaseRef.current === 'playing_sequence') {
                         const now = performance.now();
                         const delta = now - (lastFrameTime.current || now);
                         lastFrameTime.current = now;
@@ -381,6 +384,22 @@ export const PracticeSession = ({ lesson, onFinish }) => {
             if (!videoRef.current || phase === 'briefing') return;
 
             tracker = await initHandTracker((result) => {
+                setWarning(prev => {
+                    if (phaseRef.current === 'countdown' || phaseRef.current === 'instruct' || phaseRef.current === 'demo') {
+                        return null; // Suppress warnings before gameplay begins
+                    }
+
+                    if (!result.found) {
+                        const newWarning = result.reason || "Guitar not detected. Show both hands.";
+                        return prev === newWarning ? prev : newWarning;
+                    } else {
+                        if (prev && (prev === 'Need 2 hands' || prev === 'Crossed Hands' || prev === 'Hands too close' || prev === "Guitar not detected. Show both hands.")) {
+                            return null;
+                        }
+                        return prev;
+                    }
+                });
+
                 if (settings.showDebug && result.landmarks && debugCanvasRef.current) {
                     drawSkeleton(debugCanvasRef.current, result.landmarks);
                 } else if (debugCanvasRef.current) {
@@ -391,7 +410,11 @@ export const PracticeSession = ({ lesson, onFinish }) => {
 
             const loop = async () => {
                 if (videoRef.current && videoRef.current.readyState >= 2) {
-                    await tracker.send(videoRef.current);
+                    try {
+                        await tracker.send(videoRef.current);
+                    } catch (e) {
+                        // ignore video frame errors
+                    }
                 }
                 animationFrameId = requestAnimationFrame(loop);
             };

@@ -69,7 +69,8 @@ class NeuroSyncEngine {
             // Major biophysical error?
             // For now, let's treat "No Hand" as just listening
             if (bioFrame.issues.includes("No Hand")) {
-                state.status = 'listening';
+                state.status = 'correcting';
+                state.feedback = "Guitar not detected. Show both hands.";
             }
             // Real posture error?
             else if (bioFrame.metrics && bioFrame.metrics.indexCurvature > 170) {
